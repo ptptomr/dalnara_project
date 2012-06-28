@@ -46,6 +46,31 @@ void gfx::Init(void)
 	glMatrixMode(GL_MODELVIEW);
 }
 
+void gfx::SetFlatMode(void)
+{
+	glClearColorx(0, 0, 0, 0);
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_FOG); 
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	struct TViewPort
+	{
+		GLint x, y, width, height;
+	} view_port;
+
+	glGetIntegerv(GL_VIEWPORT, (GLint*)&view_port);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glFrustumx(view_port.x << 16, (view_port.x+view_port.width) << 16, (view_port.y+view_port.height) << 16, view_port.y << 16, Z_NEAR, Z_FAR);
+}
+
 void gfx::FillRect(unsigned long real_color, int x, int y, int width, int height)
 {
 	g_p_back_buffer->FillRect(real_color, _ToF16(x), _ToF16(y), _ToF16(width), _ToF16(height));

@@ -105,7 +105,6 @@ namespace
 namespace erio
 {
 	extern IDirect3DDevice9* g_pD3DDevice;
-	extern CSm3DAttrib*      g_pD3DAttrib;
 
 	const char* MAP_DATA[] =
 	{
@@ -190,6 +189,25 @@ namespace erio
 		};
 	};
 
+
+////////////////////////////////////////////////////////////////////////////////
+// callback
+
+namespace game_play
+{
+	CSm3DAttrib* p_d3d_attrib = 0;
+
+	const int NUM_OF_VERTICES = 14;
+	avej_lite::IGfxSurface* p_res_sprite = 0;
+
+	void SetupMatrices(void)
+	{
+		TD3DMatrix matWorld;
+
+		D3DXMatrixIdentity(&matWorld);
+		g_pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+	}
+
 	void Test(int mode)
 	{
 		const int MAX_FACE_INC = 8;
@@ -199,7 +217,7 @@ namespace erio
 		CSmPlayer* pMainPlayer = GetMainPlayer();
 
 		{
-			single angle = g_pD3DAttrib->GetCamera()->GetAngle();
+			single angle = p_d3d_attrib->GetCamera()->GetAngle();
 
 			pVbCharacter->Begin();
 
@@ -265,24 +283,10 @@ namespace erio
 		}
 	}
 
-////////////////////////////////////////////////////////////////////////////////
-// callback
-
-namespace game_play
-{
-	const int NUM_OF_VERTICES = 14;
-	avej_lite::IGfxSurface* p_res_sprite = 0;
-
-	void SetupMatrices(void)
-	{
-		TD3DMatrix matWorld;
-
-		D3DXMatrixIdentity(&matWorld);
-		g_pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
-	}
-
 	bool OnCreate(void)
 	{
+		p_d3d_attrib = new CSm3DAttrib(g_pD3DDevice, 800.0f / 480.0f);
+
 		playerList.push_back(CreateCharacter(0, 0.0f, 0.0f));
 		playerList.push_back(CreateCharacter(1, 2.0f, -4.0f));
 
@@ -379,8 +383,6 @@ namespace game_play
 					for (int i = 0; i < 2; i++)
 					{
 						int tile = m_map.GetTile(x, y);
-						if (x + y % 8 == 0)
-							tile = 1;
 
 						p_vertext_data[3*i+0] = vertices[tile][indice[i][0]];
 						p_vertext_data[3*i+1] = vertices[tile][indice[i][1]];
@@ -478,6 +480,9 @@ namespace game_play
 		delete pVbTemp;
 		pVbTemp = 0;
 
+		delete p_d3d_attrib;
+		p_d3d_attrib = 0;
+
 		return true;
 	}
 
@@ -536,7 +541,7 @@ namespace game_play
 			}
 		}
 
-		g_pD3DAttrib->Process();
+		p_d3d_attrib->Process();
 
 		g_pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
 						  D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);

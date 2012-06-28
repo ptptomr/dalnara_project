@@ -3,25 +3,50 @@
 // uses
 
 #include "iqb_z_config.h"
+
 #include "iqb_base_gfx.h"
+
+#include "iqb_class_3d_texture.h"
+#include "iqb_class_3d_attrib.h"
+
 
 using namespace avej_lite;
 
 namespace erio
 {
-
-////////////////////////////////////////////////////////////////////////////////
-// callback
+	extern IDirect3DDevice9* g_pD3DDevice;
 
 namespace title
 {
+	// alpha constant
+	const float ALPHA_STEP = 0.005f;
+
+	float alpha_constant = 0.0f;
+	float alpha_advance = ALPHA_STEP;
+
+	// translucent rectangle
+	int rectangle_x = 0;
+	int rectangle_y = 300;
+
+	iu::shared_ptr<CTexture> sprite;
+
 	bool OnCreate(void)
 	{
+		gfx::SetFlatMode();
+
+		sprite = iu::shared_ptr<CTexture>(new CTexture(g_pD3DDevice, "team_logo.tga"));
+		if (sprite->m_p_texture == 0)
+		{
+			sprite = iu::shared_ptr<CTexture>(new CTexture(g_pD3DDevice, "res_Block/team_logo.tga"));
+		}
+
 		return true;
 	}
 
 	bool OnDestory(void)
 	{
+		sprite.setNull();
+
 		return true;
 	}
 
@@ -32,7 +57,7 @@ namespace title
 
 		if (input_device.WasKeyPressed(avej_lite::INPUT_KEY_SYS1))
 		{
-			g_ChangeState(STATE_EXIT);
+			g_ChangeState(STATE_GAME_PLAY);
 			return false;
 		}
 
@@ -42,8 +67,19 @@ namespace title
 
 			g_p_gfx_device->BeginDraw();
 
-			gfx::FillRect(0xFF204080, 50, 50, 100, 100); 
-			gfx::BitBlt(0, 0, g_p_res_sprite, 0, 0, 512, 256);
+			gfx::BlendBlt(0, 0, sprite->m_p_texture->m_p_surface, 0, 0, 660, 480, alpha_constant);
+			gfx::FillRect(0x80FF4080, rectangle_x, rectangle_y, 100, 100); 
+
+			// revise alpha constant
+			{
+				alpha_constant += alpha_advance;
+				if (alpha_constant >= 1.0f)
+					alpha_advance = -ALPHA_STEP;
+				if (alpha_constant <= 0.0f)
+					alpha_advance = +ALPHA_STEP;
+			}
+
+			rectangle_x = (rectangle_x++ > 500) ? 0 : rectangle_x;
 
 			g_p_gfx_device->EndDraw();
 			g_p_gfx_device->Flip();

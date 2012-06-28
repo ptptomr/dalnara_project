@@ -116,6 +116,7 @@ bool DecodeSMgal_Native(const unsigned char* p_stream, unsigned int stream_size,
 	bool is_flipped      = (smgal_header.image_descriptor & 0x20) > 0;
 
 	bool is_decodable    = (smgal_header.pixel_depth == 32 && is_RGB_color)
+	                    || (smgal_header.pixel_depth == 24 && is_RGB_color && !is_compressed)
 	                    || (smgal_header.pixel_depth == 8 && is_color_mapped && !is_compressed);
 
 	if (!is_decodable)
@@ -232,6 +233,33 @@ bool DecodeSMgal_Native(const unsigned char* p_stream, unsigned int stream_size,
 							*p_dest_32++ = palette[*p_stream_begin++];
 						}
 					}
+				}
+			}
+		}
+		break;
+	case 24:
+		{
+			int            w = smgal_header.width;
+			int            h = smgal_header.height;
+			signed char    code;
+			unsigned long  color;
+			unsigned long* p_dest_32;
+			unsigned char* p_dest = image.p_bitmap;
+
+			assert(!is_compressed);
+
+			while (--h >= 0)
+			{
+				p_dest_32 = (unsigned long*)p_dest + h * w;
+
+				int copy = w;
+				while (--copy >= 0)
+				{
+					unsigned long b = (unsigned long)*p_stream_begin++;
+					unsigned long g = (unsigned long)*p_stream_begin++;
+					unsigned long r = (unsigned long)*p_stream_begin++;
+
+					*p_dest_32++ = 0xFF000000 | r << 16 | g << 8 | b;
 				}
 			}
 		}

@@ -17,8 +17,12 @@ namespace erio
 
 	enum TState
 	{
-		STATE_TITLE = 0,
+		STATE_TEAM_LOGO = 0,
+		STATE_TITLE,
+		STATE_OPTION,
+		STATE_STAGE_SELECT,
 		STATE_GAME_PLAY,
+		STATE_ENDING,
 		STATE_EXIT
 	};
 

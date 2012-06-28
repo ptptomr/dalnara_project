@@ -303,15 +303,31 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src_Block\iqb_actor_game_play.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src_Block\iqb_actor_main.cpp"
 				>
 			</File>
 			<File
+				RelativePath=".\src_Block\iqb_actor_team_logo.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src_Block\iqb_actor_title.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src_Block\iqb_actor_option.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src_Block\iqb_actor_stage_select.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src_Block\iqb_actor_game_play.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src_Block\iqb_actor_ending.cpp"
 				>
 			</File>
 			<File

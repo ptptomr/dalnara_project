@@ -6,7 +6,6 @@
 #include "iqb_z_util.h"
 #include "iqb_base_gfx.h"
 #include "iqb_class_3d.h"
-//#include "iqb_actor.h"
 #include "iqb_class_3d_vertext.h"
 #include "iqb_class_3d_attrib.h"
 
@@ -42,22 +41,32 @@ void g_ChangeState(TState state)
 ////////////////////////////////////////////////////////////////////////////////
 // main
 
-namespace title     { extern AppCallback callback; }
-namespace game_play { extern AppCallback callback; }
+namespace team_logo    { extern AppCallback callback; }
+namespace title        { extern AppCallback callback; }
+namespace option       { extern AppCallback callback; }
+namespace stage_select { extern AppCallback callback; }
+namespace game_play    { extern AppCallback callback; }
+namespace ending       { extern AppCallback callback; }
 
 const AppCallback* g_app_callback_list[STATE_EXIT+1] =
 {
-	// 	STATE_TITLE
+	// STATE_TEAM_LOGO
+	&team_logo::callback,
+	// STATE_TITLE
 	&title::callback,
-	// 	STATE_GAME_PLAY
+	// STATE_OPTION
+	&option::callback,
+	// STATE_STAGE_SELECT
+	&stage_select::callback,
+	// STATE_GAME_PLAY
 	&game_play::callback,
+	// STATE_ENDING
+	&ending::callback,
 	//  STATE_EXIT
 	NULL,
 };
 
-
 IDirect3DDevice9* g_pD3DDevice = 0;
-CSm3DAttrib*      g_pD3DAttrib = 0;
 
 
 class CSystem
@@ -109,13 +118,9 @@ public:
 		g_p_gfx_device->GetSurface(&g_p_back_buffer);
 
 		g_pD3DDevice = new IDirect3DDevice9(g_p_gfx_device);
-		g_pD3DAttrib = new CSm3DAttrib(g_pD3DDevice, 800.0f / 480.0f);
 	}
 	~CSystem()
 	{
-		delete g_pD3DAttrib;
-		g_pD3DAttrib = NULL;
-
 		if (g_pD3DDevice)
 		{
 			g_pD3DDevice->Release();
@@ -203,8 +208,8 @@ static bool s_Initialize(void* h_window)
 	avej_lite::util::SetResourcePath("../../Res/res_Block");
 #endif
 
-//	p_system = new CSystem(STATE_TITLE);
-	p_system = new CSystem(STATE_GAME_PLAY);
+	p_system = new CSystem(STATE_TITLE);
+//	p_system = new CSystem(STATE_GAME_PLAY);
 	return (p_system != 0);
 }
 
