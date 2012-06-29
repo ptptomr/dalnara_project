@@ -34,215 +34,206 @@ namespace
 
 namespace erio
 {
+	///////////////////////////////////////////////////////////////////////////////
+	// global
 
-////////////////////////////////////////////////////////////////////////////////
-// static variable
+	IDirect3DDevice9* g_p_d3d_device = 0;
 
-static TLayerDesc s_layer_option =
-{
-	1,
+	///////////////////////////////////////////////////////////////////////////////
+	// state machine
+
+	namespace team_logo    { extern AppCallback callback; }
+	namespace title        { extern AppCallback callback; }
+	namespace option       { extern AppCallback callback; }
+	namespace stage_select { extern AppCallback callback; }
+	namespace game_play    { extern AppCallback callback; }
+	namespace ending       { extern AppCallback callback; }
+
+	namespace
 	{
-		avej_lite::TLayerDesc::LAYER_ATTRIB_ALPHA_TEST | avej_lite::TLayerDesc::LAYER_ATTRIB_ALPHA_BLEND
-	},
-	avej_lite::TLayerDesc::OPTION_NONE
-};
+		bool   s_state_changing = false;
+		TState s_required_state = STATE_EXIT;
 
-static bool   s_state_changing = false;
-static TState s_required_state = STATE_EXIT;
-
-////////////////////////////////////////////////////////////////////////////////
-// global function
-
-void g_ChangeState(TState state)
-{
-	s_required_state = state;
-	s_state_changing = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// main
-
-namespace team_logo    { extern AppCallback callback; }
-namespace title        { extern AppCallback callback; }
-namespace option       { extern AppCallback callback; }
-namespace stage_select { extern AppCallback callback; }
-namespace game_play    { extern AppCallback callback; }
-namespace ending       { extern AppCallback callback; }
-
-const AppCallback* g_app_callback_list[STATE_EXIT+1] =
-{
-	// STATE_TEAM_LOGO
-	&team_logo::callback,
-	// STATE_TITLE
-	&title::callback,
-	// STATE_OPTION
-	&option::callback,
-	// STATE_STAGE_SELECT
-	&stage_select::callback,
-	// STATE_GAME_PLAY
-	&game_play::callback,
-	// STATE_ENDING
-	&ending::callback,
-	//  STATE_EXIT
-	NULL,
-};
-
-IDirect3DDevice9* g_p_d3d_device = 0;
-
-
-class CSystem
-{
-	enum TProcess
-	{
-		PROCESS_READY,
-		PROCESS_IN
-	};
-
-	TProcess  m_process;
-	TState    m_current_state;
-	IAvejApp* m_p_app;
-
-protected:
-	void _Run(TState state)
-	{
-		while (g_app_callback_list[state])
+		const AppCallback* s_app_callback_list[STATE_EXIT+1] =
 		{
-			s_ClearKeyBuffer();
-
-			IAvejApp* p_app = IAvejApp::GetInstance(*g_app_callback_list[state]);
-			assert(p_app);
-			
-			p_app->Process();
-			p_app->Release();
-
-			if (s_state_changing)
-			{
-				state = s_required_state;
-				s_state_changing = false;
-			}
-
-			if (s_required_state == STATE_EXIT)
-				break;
-		}
+			// STATE_TEAM_LOGO
+			&team_logo::callback,
+			// STATE_TITLE
+			&title::callback,
+			// STATE_OPTION
+			&option::callback,
+			// STATE_STAGE_SELECT
+			&stage_select::callback,
+			// STATE_GAME_PLAY
+			&game_play::callback,
+			// STATE_ENDING
+			&ending::callback,
+			//  STATE_EXIT
+			NULL,
+		};
 	}
 
-public:
-	CSystem(TState state)
-	: m_current_state(state), m_process(PROCESS_READY), m_p_app(0)
+	void g_ChangeState(TState state)
 	{
-		// initialize the graphics system
-		g_p_gfx_device = IGfxDevice::GetInstance();
-		
-		gfx::Init();
-
-		g_p_gfx_device->SetLayerDesc(s_layer_option);
-		g_p_gfx_device->GetSurface(&g_p_back_buffer);
-
-		g_p_d3d_device = new IDirect3DDevice9(g_p_gfx_device);
+		s_required_state = state;
+		s_state_changing = true;
 	}
-	~CSystem()
+
+	///////////////////////////////////////////////////////////////////////////////
+	// CSystem class
+	class CSystem
 	{
-		if (g_p_d3d_device)
+		enum TProcess
 		{
-			g_p_d3d_device->Release();
-			g_p_d3d_device = NULL;
-		}
+			PROCESS_READY,
+			PROCESS_IN
+		};
 
-		g_p_gfx_device->Release();
-	}
-	bool Process(void)
-	{
-		switch (m_process)
+	public:
+		CSystem(TState state)
+		: m_current_state(state), m_process(PROCESS_READY), m_p_app(0)
 		{
-		case PROCESS_READY:
+			TLayerDesc layer_option =
 			{
-				if (g_app_callback_list[m_current_state] == 0)
-					return false;
-
-				s_ClearKeyBuffer();
-
-				assert(m_p_app == 0);
-				m_p_app = IAvejApp::GetInstance(*g_app_callback_list[m_current_state]);
-				assert(m_p_app);
-
-				m_process = PROCESS_IN;
-			}
-			// pass through
-		case PROCESS_IN:
-			{
-				if (!m_p_app->Process())
+				1,
 				{
-					m_p_app->Release();
-					m_p_app = 0;
+					avej_lite::TLayerDesc::LAYER_ATTRIB_ALPHA_TEST | avej_lite::TLayerDesc::LAYER_ATTRIB_ALPHA_BLEND
+				},
+				avej_lite::TLayerDesc::OPTION_NONE
+			};
 
-					if (s_state_changing)
-					{
-						m_current_state = s_required_state;
-						s_state_changing = false;
-					}
+			// initialize the graphics system
+			g_p_gfx_device = IGfxDevice::GetInstance();
+			
+			gfx::Init();
 
-					if (s_required_state == STATE_EXIT)
+			g_p_gfx_device->SetLayerDesc(layer_option);
+			g_p_gfx_device->GetSurface(&g_p_back_buffer);
+
+			g_p_d3d_device = new IDirect3DDevice9(g_p_gfx_device);
+		}
+
+		~CSystem()
+		{
+			if (g_p_d3d_device)
+			{
+				g_p_d3d_device->Release();
+				g_p_d3d_device = NULL;
+			}
+
+			g_p_gfx_device->Release();
+		}
+
+		bool Process(void)
+		{
+			switch (m_process)
+			{
+			case PROCESS_READY:
+				{
+					if (s_app_callback_list[m_current_state] == 0)
 						return false;
 
-					m_process = PROCESS_READY;
+					s_ClearKeyBuffer();
+
+					assert(m_p_app == 0);
+					m_p_app = IAvejApp::GetInstance(*s_app_callback_list[m_current_state]);
+					assert(m_p_app);
+
+					m_process = PROCESS_IN;
 				}
+				// pass through
+			case PROCESS_IN:
+				{
+					if (!m_p_app->Process())
+					{
+						m_p_app->Release();
+						m_p_app = 0;
+
+						if (s_state_changing)
+						{
+							m_current_state = s_required_state;
+							s_state_changing = false;
+						}
+
+						if (s_required_state == STATE_EXIT)
+							return false;
+
+						m_process = PROCESS_READY;
+					}
+				}
+				break;
 			}
-			break;
+
+			return true;
 		}
 
-		return true;
-	}
-};
+	protected:
+		void _Run(TState state)
+		{
+			while (s_app_callback_list[state])
+			{
+				s_ClearKeyBuffer();
+
+				IAvejApp* p_app = IAvejApp::GetInstance(*s_app_callback_list[state]);
+				assert(p_app);
+				
+				p_app->Process();
+				p_app->Release();
+
+				if (s_state_changing)
+				{
+					state = s_required_state;
+					s_state_changing = false;
+				}
+
+				if (s_required_state == STATE_EXIT)
+					break;
+			}
+		}
+
+	private:
+		TProcess  m_process;
+		TState    m_current_state;
+		IAvejApp* m_p_app;
+	};
 
 } // namespace erio
 
 ////////////////////////////////////////////////////////////////////////////////
 // main
 
-using namespace erio;
-
-static CSystem* p_system = 0;
-
-static void avej_init()
-{
-	p_system = new CSystem(STATE_GAME_PLAY);
-//	p_system = new CSystem(STATE_TITLE);
-}
-
-static void avej_done()
-{
-	delete p_system;
-}
-
-static bool avej_process()
-{
-	return p_system->Process();
-}
-
 #include "avejapp_register.h"
 
-static bool s_Initialize(void* h_window)
-{
-#if (TARGET_DEVICE == TARGET_BADA)
-	avej_lite::util::SetResourcePath("res_Block");
-#else
-	avej_lite::util::SetResourcePath("../../Res/res_Block");
-#endif
+using namespace erio;
 
-	p_system = new CSystem(STATE_TITLE);
-//	p_system = new CSystem(STATE_GAME_PLAY);
-	return (p_system != 0);
+namespace
+{
+	CSystem* p_system = 0;
+
+	bool s_Initialize(void* h_window)
+	{
+	#if (TARGET_DEVICE == TARGET_BADA)
+		avej_lite::util::SetResourcePath("res_Block");
+	#else
+		avej_lite::util::SetResourcePath("../../Res/res_Block");
+	#endif
+
+		p_system = new CSystem(STATE_TITLE);
+
+		return (p_system != 0);
+	}
+
+	void s_Finalize(void)
+	{
+		delete p_system;
+	}
+
+	bool s_Process(void)
+	{
+		return p_system->Process();
+	}
 }
 
-static void s_Finalize(void)
-{
-	delete p_system;
-}
-
-static bool s_Process(void)
-{
-	return p_system->Process();
-}
 
 static bool GetAppCallback(TAppCallback& out_callback)
 {
@@ -274,4 +265,4 @@ bool g_Game_Process(void)
 ////////////////////////////////////////////////////////////////////////////////
 //
 
-REGISTER_APP_1("IQ Block", GetAppCallback);
+REGISTER_APP_1("DALNARA", GetAppCallback);

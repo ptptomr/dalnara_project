@@ -51,14 +51,18 @@ public:
 
 	void ProcessMessages(void)
 	{
-		::avej_lite::gfx3d::ProcessMessage(1);
+		::avej_lite::gfx3d::ProcessMessage(6);
 //		IAvejApp::ProcessMessages();
 	}
 
 	bool Process(void)
 	{
+#if 1
+	#if (TARGET_DEVICE == TARGET_WIN32)
+		ProcessMessages();
+	#endif
 		return (_fn_callback.OnProcess) ? _fn_callback.OnProcess() : false;
-/*
+#else
 		_done = false;
 		while (!_done)
 		{
@@ -68,7 +72,7 @@ public:
 				_done = !_fn_callback.OnProcess();
 		}
 
-*/
+#endif
 	}
 
 	static avej_lite::IAvejApp* p_app_impl;

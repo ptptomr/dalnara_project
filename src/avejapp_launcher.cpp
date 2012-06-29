@@ -4,7 +4,7 @@
 
 const char* G_APP_LIST[] =
 {
-	"IQ Block",
+	"DALNARA",
 	"ShitFighter_Wave",
 	"ManoEri",
 	0
