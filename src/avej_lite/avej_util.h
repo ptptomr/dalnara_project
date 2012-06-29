@@ -2,9 +2,12 @@
 #ifndef __AVEJ_UTIL_H__
 #define __AVEJ_UTIL_H__
 
-#include <string.h>
+#pragma warning(disable: 4996)
+
 #include "avej_base_type.h"
 #include "avej_util_iu.h"
+
+#include <string.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // definition

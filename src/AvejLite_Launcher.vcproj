@@ -402,14 +402,6 @@
 				RelativePath=".\src_Block\iqb_z_config.h"
 				>
 			</File>
-			<File
-				RelativePath=".\src_Block\iqb_z_util.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src_Block\iqb_z_util.h"
-				>
-			</File>
 		</Filter>
 		<File
 			RelativePath=".\avej.h"

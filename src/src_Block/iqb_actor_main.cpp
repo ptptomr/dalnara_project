@@ -3,13 +3,34 @@
 // uses
 
 #include "iqb_z_config.h"
-#include "iqb_z_util.h"
 #include "iqb_base_gfx.h"
 #include "iqb_class_3d.h"
 #include "iqb_class_3d_vertext.h"
 #include "iqb_class_3d_attrib.h"
 
+#include <assert.h>
+
 using namespace avej_lite;
+
+namespace
+{
+	template <typename T>
+	void s_Increase(T& value)
+	{
+		int temp = (int)value;
+		value = (T)(temp+1);
+	}
+
+	void s_ClearKeyBuffer(void)
+	{
+		avej_lite::CInputDevice& input_device = avej_lite::singleton<avej_lite::CInputDevice>::get();
+		input_device.UpdateInputState();
+
+		// 키버퍼 소거
+		for (avej_lite::TInputKey key = avej_lite::INPUT_KEY_BEGIN; key < avej_lite::INPUT_KEY_END; s_Increase(key))
+			input_device.WasKeyPressed(key);
+	}
+}
 
 namespace erio
 {
@@ -86,10 +107,10 @@ protected:
 	{
 		while (g_app_callback_list[state])
 		{
-			util::ClearKeyBuffer();
+			s_ClearKeyBuffer();
 
 			IAvejApp* p_app = IAvejApp::GetInstance(*g_app_callback_list[state]);
-			SF_ASSERT(p_app);
+			assert(p_app);
 			
 			p_app->Process();
 			p_app->Release();
@@ -138,7 +159,7 @@ public:
 				if (g_app_callback_list[m_current_state] == 0)
 					return false;
 
-				util::ClearKeyBuffer();
+				s_ClearKeyBuffer();
 
 				assert(m_p_app == 0);
 				m_p_app = IAvejApp::GetInstance(*g_app_callback_list[m_current_state]);

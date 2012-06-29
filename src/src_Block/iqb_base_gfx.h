@@ -3,7 +3,6 @@
 #define __IQB_BASE_GFX_H__
 
 #include "iqb_z_config.h"
-#include "iqb_z_util.h"
 
 namespace erio
 {

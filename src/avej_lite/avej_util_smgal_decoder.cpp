@@ -241,8 +241,6 @@ bool DecodeSMgal_Native(const unsigned char* p_stream, unsigned int stream_size,
 		{
 			int            w = smgal_header.width;
 			int            h = smgal_header.height;
-			signed char    code;
-			unsigned long  color;
 			unsigned long* p_dest_32;
 			unsigned char* p_dest = image.p_bitmap;
 

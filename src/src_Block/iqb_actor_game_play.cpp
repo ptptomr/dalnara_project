@@ -440,7 +440,7 @@ namespace game_play
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glEnable(GL_ALPHA_TEST);
-		glAlphaFuncx(GL_GREATER, 0.0f);
+		glAlphaFuncx(GL_GREATER, GLclampx(0));
 #else
 		g_p_d3d_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 		g_p_d3d_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
