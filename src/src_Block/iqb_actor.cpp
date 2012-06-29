@@ -2,31 +2,34 @@
 #include "iqb_actor.h"
 #include <assert.h>
 
-CSmPlayer::CSmPlayer()
+namespace
+{
+	template <class T>
+	inline int Sign(T data)
+	{
+		return (data == 0) ? 0 : ((data > 0) ? 1 : -1);
+	}
+}
+
+erio::CSmPlayer::CSmPlayer()
 {
 }
 
-CSmPlayer::~CSmPlayer()
+erio::CSmPlayer::~CSmPlayer()
 {
 }
 
-template <class T>
-inline int sgn(T data)
-{
-	return (data == 0) ? 0 : ((data > 0) ? 1 : -1);
-}
-
-void CSmPlayer::Move(float dx, float dy, bool turnFace)
+void erio::CSmPlayer::Move(float dx, float dy, bool turn_face)
 {
 	attribute.pos.x += dx;
 	attribute.pos.y += dy;
 
-	if (turnFace)
+	if (turn_face)
 	{
 		if (dx == 0 && dy == 0)
 			return;
 
-		int index = (2-(sgn(dy)+1)) * 3 + (sgn(dx)+1);
+		int index = (2-(Sign(dy)+1)) * 3 + (Sign(dx)+1);
 
 		const int FACE_DATA[9] =
 		{
@@ -41,6 +44,7 @@ void CSmPlayer::Move(float dx, float dy, bool turnFace)
 	}
 
 	++attribute.face_inc_count;
+
 	if (attribute.face_inc_count > 10)
 	{
 		attribute.face_inc_count = 0;
@@ -48,21 +52,22 @@ void CSmPlayer::Move(float dx, float dy, bool turnFace)
 	}
 }
 
-void CSmPlayer::Warp(float x, float y)
+void erio::CSmPlayer::Warp(float x, float y)
 {
 	attribute.pos.x = x;
 	attribute.pos.y = y;
 }
 
-unsigned long CSmPlayer::Process(long refTime, ISmActor* pSender)
+unsigned long erio::CSmPlayer::Process(long ref_time, ISmActor* p_sender)
 {
 	return 0;
 }
 
-CSmPlayer* CreateCharacter(int type, float x, float y)
+erio::CSmPlayer* erio::CreateCharacter(int type, float x, float y)
 {
-	CSmPlayer* pPlayer = new CSmPlayer;
-	pPlayer->Warp(x, y);
+	CSmPlayer* p_player = new CSmPlayer;
+
+	p_player->Warp(x, y);
 	
-	return pPlayer;
+	return p_player;
 }

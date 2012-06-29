@@ -5,18 +5,22 @@
 #include "iqb_base_type.h"
 #include "iqb_class_3d.h"
 
-class CSm3DLight: public ISmActor
+namespace erio
 {
-private:
-	IDirect3DDevice9* m_pD3DDevice;
-	TD3DLight9 m_light;
+	class CSm3DLight: public ISmActor
+	{
+	public:
+		CSm3DLight(IDirect3DDevice9* p_d3d_device);
 
-	void m_Apply(void);
+		unsigned long Process(long ref_time = 0, ISmActor* p_sender = 0);
 
-public:
-	CSm3DLight(IDirect3DDevice9* pD3DDevice);
+	private:
+		IDirect3DDevice9* m_p_d3d_device;
+		TD3DLight9        m_light;
 
-	unsigned long Process(long refTime = 0, ISmActor* pSender = 0);
-};
+		void m_Apply(void);
+	};
+
+} // namespace erio
 
 #endif // #ifndef __IQB_CLASS_3D_LIGHT_H__

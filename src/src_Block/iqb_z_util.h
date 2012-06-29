@@ -110,7 +110,7 @@ namespace erio
 	namespace util
 	{
 		void ClearKeyBuffer(void);
-		void ComposeString(tchar pBuffer[], const tchar* szFormat, const int data ...);
+		void ComposeString(tchar p_buffer[], const tchar* sz_format, const int data ...);
 
 		class CTextFileFromRes
 		{

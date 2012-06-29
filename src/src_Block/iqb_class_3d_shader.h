@@ -4,71 +4,83 @@
 
 #include "iqb_class_3d.h"
 
-struct TVertexShader
+namespace erio
 {
-	IDirect3DVertexDeclaration9* pDeclation;
-	IDirect3DVertexShader9*      pShader;
+	struct TVertexShader
+	{
+		IDirect3DVertexDeclaration9* p_declation;
+		IDirect3DVertexShader9*      p_shader;
 
-	TVertexShader()
-		: pDeclation(NULL), pShader(NULL)
-	{
-	}
-	TVertexShader(IDirect3DVertexDeclaration9* _pDeclation, IDirect3DVertexShader9* _pShader)
-		: pDeclation(_pDeclation), pShader(_pShader)
-	{
-	}
-	~TVertexShader()
-	{
-		if (pDeclation)
-			pDeclation->Release();
-		if (pShader)
-			pShader->Release();
-	}
-};
+		TVertexShader()
+			: p_declation(NULL)
+			, p_shader(NULL)
+		{
+		}
 
-struct TPixelShader
-{
-	IDirect3DPixelShader9*       pShader;
+		TVertexShader(IDirect3DVertexDeclaration9* _p_declation, IDirect3DVertexShader9* _p_shader)
+			: p_declation(_p_declation)
+			, p_shader(_p_shader)
+		{
+		}
 
-	TPixelShader()
-		: pShader(NULL)
-	{
-	}
-	TPixelShader(IDirect3DPixelShader9* _pShader)
-		: pShader(_pShader)
-	{
-	}
-	~TPixelShader()
-	{
-		if (pShader)
-			pShader->Release();
-	}
-};
+		~TVertexShader()
+		{
+			if (p_declation)
+				p_declation->Release();
+			if (p_shader)
+				p_shader->Release();
+		}
+	};
 
-struct TShaderSet
-{
-	iu::shared_ptr<TVertexShader> vertex;
-	iu::shared_ptr<TPixelShader>  pixel;
-
-	TShaderSet()
+	struct TPixelShader
 	{
-	}
-	TShaderSet(iu::shared_ptr<TVertexShader> _vertex, iu::shared_ptr<TPixelShader> _pixel)
-		: vertex(_vertex), pixel(_pixel)
+		IDirect3DPixelShader9* p_shader;
+
+		TPixelShader()
+			: p_shader(NULL)
+		{
+		}
+
+		TPixelShader(IDirect3DPixelShader9* _p_shader)
+			: p_shader(_p_shader)
+		{
+		}
+
+		~TPixelShader()
+		{
+			if (p_shader)
+				p_shader->Release();
+		}
+	};
+
+	struct TShaderSet
 	{
+		iu::shared_ptr<TVertexShader> vertex;
+		iu::shared_ptr<TPixelShader>  pixel;
+
+		TShaderSet()
+		{
+		}
+
+		TShaderSet(iu::shared_ptr<TVertexShader> _vertex, iu::shared_ptr<TPixelShader> _pixel)
+			: vertex(_vertex)
+			, pixel(_pixel)
+		{
+		}
+	};
+
+	iu::shared_ptr<TPixelShader> CreatePixelShader(IDirect3DDevice9* p_d3d_device, const char* sz_shader_code);
+	iu::shared_ptr<TVertexShader> CreateVertexShader(IDirect3DDevice9* p_d3d_device, const char* sz_shader_code, DWORD fvf);
+
+	namespace shader
+	{
+		void SetFog(IDirect3DDevice9* p_d3d_device, float fog_start, float fog_end);
+		void SetTexFactor(IDirect3DDevice9* p_d3d_device, float factor);
+		void SetLightDir(IDirect3DDevice9* p_d3d_device, float x_dir, float y_dir, float z_dir);
+		void SetLightDiffuse(IDirect3DDevice9* p_d3d_device, float R, float G, float B);
+		void SetLightAmbient(IDirect3DDevice9* p_d3d_device, float R, float G, float B);
 	}
-};
 
-iu::shared_ptr<TPixelShader> CreatePixelShader(IDirect3DDevice9* pD3DDevice, const char* szShaderCode);
-iu::shared_ptr<TVertexShader> CreateVertexShader(IDirect3DDevice9* pD3DDevice, const char* szShaderCode, DWORD fvf);
-
-namespace shader
-{
-	void SetFog(IDirect3DDevice9* pD3DDevice, float fogStart, float fogEnd);
-	void SetTexFactor(IDirect3DDevice9* pD3DDevice, float factor);
-	void SetLightDir(IDirect3DDevice9* pD3DDevice, float xDir, float yDir, float zDir);
-	void SetLightDiffuse(IDirect3DDevice9* pD3DDevice, float R, float G, float B);
-	void SetLightAmbient(IDirect3DDevice9* pD3DDevice, float R, float G, float B);
-}
+} // namespace erio
 
 #endif // #ifndef __IQB_CLASS_3D_SHADER_H__

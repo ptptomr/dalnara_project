@@ -4,29 +4,36 @@
 
 #include "iqb_base_type.h"
 
-class CSmPlayer: public ISmActor
+namespace erio
 {
-private:
-	//ISmActor* m_pAction;
-
-public:
-	struct TAttribute
+	class CSmPlayer: public ISmActor
 	{
-		TSm_Point pos;
-		int face;
-		int face_inc;
-		int face_inc_count;
-		TAttribute(): face(0), face_inc(0), face_inc_count(0) {};
-	} attribute;
+	public:
+		CSmPlayer();
+		~CSmPlayer();
 
-	CSmPlayer();
-	~CSmPlayer();
+		void Move(float dx, float dy, bool turn_face = true);
+		void Warp(float x, float y);
+		unsigned long Process(long ref_time, ISmActor* p_sender = 0);
 
-	void Move(float dx, float dy, bool turnFace = true);
-	void Warp(float x, float y);
-	unsigned long Process(long refTime, ISmActor* pSender = 0);
-};
+		struct TAttribute
+		{
+			TSmPointEx pos;
+			int face;
+			int face_inc;
+			int face_inc_count;
 
-CSmPlayer* CreateCharacter(int type, float x, float y);
+			TAttribute()
+				: face(0)
+				, face_inc(0)
+				, face_inc_count(0)
+			{
+			}
+		} attribute;
+	};
+
+	CSmPlayer* CreateCharacter(int type, float x, float y);
+
+} // namespace erio
 
 #endif // #ifndef __IQB_ACTOR_H__

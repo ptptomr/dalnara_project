@@ -431,8 +431,8 @@ public:
 	void SetTexture(DWORD stage, IDirect3DTexture9* p_texture);
 	void SetStreamSource(DWORD StreamNumber, IDirect3DVertexBuffer9* pStreamData, DWORD OffsetInBytes, DWORD Stride);
 	void SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl);
-	void SetVertexShader(IDirect3DVertexShader9* pShader);
-	void SetPixelShader(IDirect3DPixelShader9* pShader);
+	void SetVertexShader(IDirect3DVertexShader9* p_shader);
+	void SetPixelShader(IDirect3DPixelShader9* p_shader);
 	void SetFVF(DWORD FVF);
 	void SetIndices(IDirect3DIndexBuffer9* p_index_buffer);
 	void SetTransform(D3DTRANSFORMSTATETYPE State, const D3DMATRIX* pMatrix);
@@ -534,7 +534,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void D3DXCreateTextureFromFileA(IDirect3DDevice9* pD3DDevice, const char* szFileName, IDirect3DTexture9** ppTexture);
+void D3DXCreateTextureFromFileA(IDirect3DDevice9* p_d3d_device, const char* sz_file_name, IDirect3DTexture9** ppTexture);
 
 void D3DXMatrixIdentity(TD3DMatrix* p_out_mat);
 void D3DXMatrixScaling(TD3DMatrix* p_out_mat, float x, float y, float z);

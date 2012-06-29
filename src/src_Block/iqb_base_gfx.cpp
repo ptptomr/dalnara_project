@@ -11,7 +11,6 @@ namespace erio
 {
 	IGfxDevice*  g_p_gfx_device  = NULL;
 	IGfxSurface* g_p_back_buffer = NULL;
-	IGfxSurface* g_p_res_sprite  = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,21 +31,18 @@ namespace
 	}
 }
 
-namespace erio
-{
-
-////////////////////////////////////////////////////////////////////////////////
-// public (gfx)
-
-void gfx::Init(void)
+void erio::gfx::Init(void)
 {
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glFrustumx(0, 800 << 16, 480 << 16, 0, 1000, 1000*100);
+	{
+		glLoadIdentity();
+		glFrustumx(0, 800 << 16, 480 << 16, 0, 1000, 1000*100);
+	}
+
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void gfx::SetFlatMode(void)
+void erio::gfx::SetFlatMode(void)
 {
 	glClearColorx(0, 0, 0, 0);
 
@@ -60,7 +56,10 @@ void gfx::SetFlatMode(void)
 
 	struct TViewPort
 	{
-		GLint x, y, width, height;
+		GLint x;
+		GLint y;
+		GLint width;
+		GLint height;
 	} view_port;
 
 	glGetIntegerv(GL_VIEWPORT, (GLint*)&view_port);
@@ -71,17 +70,17 @@ void gfx::SetFlatMode(void)
 	glFrustumx(view_port.x << 16, (view_port.x+view_port.width) << 16, (view_port.y+view_port.height) << 16, view_port.y << 16, Z_NEAR, Z_FAR);
 }
 
-void gfx::FillRect(unsigned long real_color, int x, int y, int width, int height)
+void erio::gfx::FillRect(unsigned long real_color, int x, int y, int width, int height)
 {
 	g_p_back_buffer->FillRect(real_color, _ToF16(x), _ToF16(y), _ToF16(width), _ToF16(height));
 }
 
-void gfx::BitBlt(int x_dest, int y_dest, IGfxSurface* p_surface, int x_sour, int y_sour, int w_sour, int h_sour)
+void erio::gfx::BitBlt(int x_dest, int y_dest, IGfxSurface* p_surface, int x_sour, int y_sour, int w_sour, int h_sour)
 {
 	g_p_back_buffer->BitBlt(_ToF16(x_dest), _ToF16(y_dest), p_surface, _ToF16(x_sour), _ToF16(y_sour), _ToF16(w_sour), _ToF16(h_sour));
 }
 
-void gfx::BlendBlt(int x_dest, int y_dest, IGfxSurface* p_surface, int x_sour, int y_sour, int w_sour, int h_sour, float opacity)
+void erio::gfx::BlendBlt(int x_dest, int y_dest, IGfxSurface* p_surface, int x_sour, int y_sour, int w_sour, int h_sour, float opacity)
 {
 	if (opacity > 0.0f)
 	{
@@ -98,6 +97,3 @@ void gfx::BlendBlt(int x_dest, int y_dest, IGfxSurface* p_surface, int x_sour, i
 		}
 	}
 }
-
-} // namespace erio
-

@@ -163,13 +163,13 @@ public:
 	//! Device에 그려진 그림을 화면으로 나타낸다.
     virtual bool  Flip(void) = 0;
 	//! Device의 백버퍼를 가져 온다.
-    virtual bool  GetSurface(IGfxSurface** ppSurface) = 0;
+    virtual bool  GetSurface(IGfxSurface** pp_surface) = 0;
 
 	//! Device에 사용 가능한 surface를 descriptor를 통해 생성한다.
 	virtual bool  CreateSurface(const TSurfaceDesc& surface_desc, IGfxSurface** pp_surface) = 0;
 
 	//! Device에 사용 가능한 surface를 이미지 파일로부터 생성한다.
-    virtual bool  CreateSurfaceFrom(const char* szFileName, IGfxSurface** ppSurface) = 0;
+    virtual bool  CreateSurfaceFrom(const char* sz_file_name, IGfxSurface** pp_surface) = 0;
 	virtual bool  CreateSurfaceFrom(const unsigned char* sz_stream, unsigned long stream_size, IGfxSurface** pp_surface) = 0;
 	//! Device의 속성을 얻는다.
     virtual bool  GetDesc(TDeviceDesc& desc) = 0;

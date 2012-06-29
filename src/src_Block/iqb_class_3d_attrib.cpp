@@ -1,19 +1,19 @@
 
 #include "iqb_class_3d_attrib.h"
 
-CSm3DAttrib::CSm3DAttrib(IDirect3DDevice9* pD3DDevice, float screenRatio)
+erio::CSm3DAttrib::CSm3DAttrib(IDirect3DDevice9* p_d3d_device, float screen_ratio)
 {
 	// assign Direct3D device instance
-	m_pD3DDevice = pD3DDevice;
+	m_p_d3d_device = p_d3d_device;
 
 	// initialize internal instances
-	m_camera     = new CSm3DCamera(pD3DDevice);
-	m_projection = new CSm3DProjection(pD3DDevice, screenRatio);
-	m_light      = new CSm3DLight(pD3DDevice);
-	m_fog        = new CSm3DFog(pD3DDevice);
+	m_camera     = new CSm3DCamera(p_d3d_device);
+	m_projection = new CSm3DProjection(p_d3d_device, screen_ratio);
+	m_light      = new CSm3DLight(p_d3d_device);
+	m_fog        = new CSm3DFog(p_d3d_device);
 }
 
-CSm3DAttrib::~CSm3DAttrib(void)
+erio::CSm3DAttrib::~CSm3DAttrib(void)
 {
 	delete m_camera;
 	delete m_projection;
@@ -21,10 +21,10 @@ CSm3DAttrib::~CSm3DAttrib(void)
 	delete m_fog;
 }
 
-unsigned long CSm3DAttrib::Process(long refTime, ISmActor* pSender)
+unsigned long erio::CSm3DAttrib::Process(long ref_time, ISmActor* p_sender)
 {
-	m_camera->Process(refTime, pSender);
-	m_projection->Process(refTime, pSender);
+	m_camera->Process(ref_time, p_sender);
+	m_projection->Process(ref_time, p_sender);
 
 	return 0;
 }

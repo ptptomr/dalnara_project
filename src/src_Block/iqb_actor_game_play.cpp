@@ -16,6 +16,8 @@ using namespace avej_lite;
 
 namespace
 {
+	using namespace erio;
+
 	struct TBounds
 	{
 		float x1;
@@ -26,8 +28,12 @@ namespace
 		TBounds()
 		{
 		}
+
 		TBounds(float _x1, float _y1, float _x2, float _y2)
-			: x1(_x1), y1(_y1), x2(_x2), y2(_y2)
+			: x1(_x1)
+			, y1(_y1)
+			, x2(_x2)
+			, y2(_y2)
 		{
 		}
 	};
@@ -76,27 +82,27 @@ namespace
 			/*
 				(x1,y2) -> (x1,y1) -> (x2,y2) -> (x2,y1) 순서
 			*/
-			vertices[ 4].texPos = TD3DVector2(srcRect.x1 + 0.5f, srcRect.y2 - MAGIC_NUMBER / 2.0f);
-			vertices[ 5].texPos = TD3DVector2(srcRect.x1 + 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
-			vertices[ 6].texPos = TD3DVector2(srcRect_x0,        srcRect.y2 + 0.5f);
-			vertices[ 7].texPos = TD3DVector2(srcRect_x0,        srcRect.y1 + MAGIC_NUMBER + 0.5f);
-			vertices[ 8].texPos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y2 - MAGIC_NUMBER / 2.0f);
-			vertices[ 9].texPos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
+			vertices[ 4].tex_pos = TD3DVector2(srcRect.x1 + 0.5f, srcRect.y2 - MAGIC_NUMBER / 2.0f);
+			vertices[ 5].tex_pos = TD3DVector2(srcRect.x1 + 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
+			vertices[ 6].tex_pos = TD3DVector2(srcRect_x0,        srcRect.y2 + 0.5f);
+			vertices[ 7].tex_pos = TD3DVector2(srcRect_x0,        srcRect.y1 + MAGIC_NUMBER + 0.5f);
+			vertices[ 8].tex_pos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y2 - MAGIC_NUMBER / 2.0f);
+			vertices[ 9].tex_pos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
 			// 반대편 기둥
-			vertices[10].texPos = vertices[ 6].texPos;
-			vertices[11].texPos = vertices[ 7].texPos;
-			vertices[12].texPos = vertices[ 4].texPos;
-			vertices[13].texPos = vertices[ 5].texPos;
+			vertices[10].tex_pos = vertices[ 6].tex_pos;
+			vertices[11].tex_pos = vertices[ 7].tex_pos;
+			vertices[12].tex_pos = vertices[ 4].tex_pos;
+			vertices[13].tex_pos = vertices[ 5].tex_pos;
 			// 꼭대기
-			vertices[ 0].texPos = vertices[ 5].texPos;
-			vertices[ 1].texPos = vertices[ 7].texPos;
-			vertices[ 2].texPos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
-			vertices[ 3].texPos = TD3DVector2(srcRect_x0, srcRect.y1);
+			vertices[ 0].tex_pos = vertices[ 5].tex_pos;
+			vertices[ 1].tex_pos = vertices[ 7].tex_pos;
+			vertices[ 2].tex_pos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
+			vertices[ 3].tex_pos = TD3DVector2(srcRect_x0, srcRect.y1);
 
 			for (int i = 0; i < count; i++)
 			{
-				vertices[i].texPos.x /= wTexture;
-				vertices[i].texPos.y /= hTexture;
+				vertices[i].tex_pos.x /= wTexture;
+				vertices[i].tex_pos.y /= hTexture;
 			}
 		}
 	}
@@ -104,7 +110,7 @@ namespace
 
 namespace erio
 {
-	extern IDirect3DDevice9* g_pD3DDevice;
+	extern IDirect3DDevice9* g_p_d3d_device;
 
 	const char* MAP_DATA[] =
 	{
@@ -160,32 +166,32 @@ namespace erio
 			{
 			case SPRITE:
 				factor = 0xD0;
-				g_pD3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+				g_p_d3d_device->SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
 				break;
 			case GHOST:
 				factor = 0x20;
-				g_pD3DDevice->SetRenderState(D3DRS_ZENABLE, false);
-				g_pD3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
+				g_p_d3d_device->SetRenderState(D3DRS_ZENABLE, false);
+				g_p_d3d_device->SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
 				break;
 			};
-			g_pD3DDevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_ARGB(factor, 0xFF, 0xFF, 0xFF));
-			g_pD3DDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
+			g_p_d3d_device->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_ARGB(factor, 0xFF, 0xFF, 0xFF));
+			g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
 
-			g_pD3DDevice->SetRenderState(D3DRS_LIGHTING, 0);
+			g_p_d3d_device->SetRenderState(D3DRS_LIGHTING, 0);
 
-			shader::SetTexFactor(g_pD3DDevice, float(factor) / 255.0f);
+			shader::SetTexFactor(g_p_d3d_device, float(factor) / 255.0f);
 		};
 		~CRenderMode()
 		{
-			shader::SetTexFactor(g_pD3DDevice, 1.0f);
+			shader::SetTexFactor(g_p_d3d_device, 1.0f);
 
-			g_pD3DDevice->SetRenderState(D3DRS_LIGHTING, 1);
+			g_p_d3d_device->SetRenderState(D3DRS_LIGHTING, 1);
 
-			g_pD3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+			g_p_d3d_device->SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
 
-			g_pD3DDevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_ARGB(0xFF, 0xFF, 0xFF, 0xFF));
-			g_pD3DDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-			g_pD3DDevice->SetRenderState(D3DRS_ZENABLE, true);
+			g_p_d3d_device->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_ARGB(0xFF, 0xFF, 0xFF, 0xFF));
+			g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+			g_p_d3d_device->SetRenderState(D3DRS_ZENABLE, true);
 		};
 	};
 
@@ -205,7 +211,7 @@ namespace game_play
 		TD3DMatrix matWorld;
 
 		D3DXMatrixIdentity(&matWorld);
-		g_pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+		g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
 	}
 
 	void Test(int mode)
@@ -227,13 +233,13 @@ namespace game_play
 			TD3DMatrix matWVP;
 			TD3DMatrix matVP;
 
-			g_pD3DDevice->GetTransform(D3DTS_VIEW, &matView);
-			g_pD3DDevice->GetTransform(D3DTS_PROJECTION, &matProj);
+			g_p_d3d_device->GetTransform(D3DTS_VIEW, &matView);
+			g_p_d3d_device->GetTransform(D3DTS_PROJECTION, &matProj);
 
 			D3DXMatrixMultiply(&matVP, &matView, &matProj);
 			D3DXMatrixTranspose(&matVP, &matVP);
 
-			g_pD3DDevice->SetVertexShaderConstantF(16, (float*)&matVP, 4);
+			g_p_d3d_device->SetVertexShaderConstantF(16, (float*)&matVP, 4);
 
 			for (TPlayerList::iterator obj = playerList.begin(); obj < playerList.end(); ++obj)
 			{
@@ -246,20 +252,20 @@ namespace game_play
 					D3DXMatrixTranslation(&temp, 1.0f * (*obj)->attribute.pos.x - pMainPlayer->attribute.pos.x, 0.26f, 1.0f * (*obj)->attribute.pos.y - pMainPlayer->attribute.pos.y);
 					D3DXMatrixMultiply(&matWorld, &matWorld, &temp);
 
-					g_pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+					g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
 
 					{
 						D3DXMatrixMultiply(&matWV, &matWorld, &matView);
 						D3DXMatrixMultiply(&matWVP, &matWV, &matProj);
 
 						D3DXMatrixTranspose(&matWVP, &matWVP);
-						g_pD3DDevice->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
+						g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
 
 						D3DXMatrixTranspose(&matWV, &matWV);
-						g_pD3DDevice->SetVertexShaderConstantF(8, (float*)&matWV, 4);
+						g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&matWV, 4);
 
 						D3DXMatrixTranspose(&matWorld, &matWorld);
-						g_pD3DDevice->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
+						g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
 					}
 				}
 
@@ -285,15 +291,15 @@ namespace game_play
 
 	bool OnCreate(void)
 	{
-		p_d3d_attrib = new CSm3DAttrib(g_pD3DDevice, 800.0f / 480.0f);
+		p_d3d_attrib = new CSm3DAttrib(g_p_d3d_device, 800.0f / 480.0f);
 
 		playerList.push_back(CreateCharacter(0, 0.0f, 0.0f));
 		playerList.push_back(CreateCharacter(1, 2.0f, -4.0f));
 
-		sprite = iu::shared_ptr<CTexture>(new CTexture(g_pD3DDevice, "NewNeto1_512_256.tga"));
+		sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "NewNeto1_512_256.tga"));
 		if (sprite->m_p_texture == 0)
 		{
-			sprite = iu::shared_ptr<CTexture>(new CTexture(g_pD3DDevice, "res_Block/NewNeto1_512_256.tga"));
+			sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "res_Block/NewNeto1_512_256.tga"));
 		}
 
 		p_res_sprite = sprite->m_p_texture->m_p_surface;
@@ -326,20 +332,20 @@ namespace game_play
 			for (int i = 0; i < MAX_FACE_INC; i++)
 			{
 				vertices[i][0].position = D3DVECTOR3(-0.5f, 1.0f, 0.0f);
-				vertices[i][0].texPos.x = srcRect[i].x1;
-				vertices[i][0].texPos.y = srcRect[i].y1;
+				vertices[i][0].tex_pos.x = srcRect[i].x1;
+				vertices[i][0].tex_pos.y = srcRect[i].y1;
 				vertices[i][1].position = D3DVECTOR3( 0.5f, 1.0f, 0.0f);
-				vertices[i][1].texPos.x = srcRect[i].x2;
-				vertices[i][1].texPos.y = srcRect[i].y1;
+				vertices[i][1].tex_pos.x = srcRect[i].x2;
+				vertices[i][1].tex_pos.y = srcRect[i].y1;
 				vertices[i][2].position = D3DVECTOR3(vertices[i][0].position.x, 0.0f, vertices[i][0].position.z);
-				vertices[i][2].texPos.x = srcRect[i].x1;
-				vertices[i][2].texPos.y = srcRect[i].y2;
+				vertices[i][2].tex_pos.x = srcRect[i].x1;
+				vertices[i][2].tex_pos.y = srcRect[i].y2;
 				vertices[i][3].position = D3DVECTOR3(vertices[i][1].position.x, 0.0f, vertices[i][1].position.z);
-				vertices[i][3].texPos.x = srcRect[i].x2;
-				vertices[i][3].texPos.y = srcRect[i].y2;
+				vertices[i][3].tex_pos.x = srcRect[i].x2;
+				vertices[i][3].tex_pos.y = srcRect[i].y2;
 			}
 
-			pVbCharacter = new TVertexBuffer<VERTEXFORMAT_POS_TEX>(g_pD3DDevice, &vertices[0][0], MAX_FACE_INC, 4, sprite);
+			pVbCharacter = new TVertexBuffer<VERTEXFORMAT_POS_TEX>(g_p_d3d_device, &vertices[0][0], MAX_FACE_INC, 4, sprite);
 			pVbCharacter->SetShader(shaderSet[VERTEXFORMAT_POS_TEX]);
 		}
 
@@ -364,7 +370,7 @@ namespace game_play
 				{10,11,12}, {12,11,13},
 			};
 			
-			pVbTile = new TVertexIndexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_pD3DDevice, &vertices[0][0], 7, NUM_OF_VERTICES, &indice[0][0], 30, sprite);
+			pVbTile = new TVertexIndexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices[0][0], 7, NUM_OF_VERTICES, &indice[0][0], 30, sprite);
 			pVbTile->SetShader(shaderSet[VERTEXFORMAT_POS_NOR_TEX]);
 
 			{
@@ -397,7 +403,7 @@ namespace game_play
 					}
 				}
 
-				pVbFixedMap = new TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_pD3DDevice, &vertices_fm[0][0][0], (2*RADIUS_WIDTH+1) * (2*RADIUS_HEIGHT+1), 2*3, sprite);
+				pVbFixedMap = new TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices_fm[0][0][0], (2*RADIUS_WIDTH+1) * (2*RADIUS_HEIGHT+1), 2*3, sprite);
 				pVbFixedMap->SetShader(shaderSet[VERTEXFORMAT_POS_NOR_TEX]);
 			}
 		}
@@ -417,7 +423,7 @@ namespace game_play
 				}
 			};
 
-			pVbTemp = new TVertexBuffer<VERTEXFORMAT_POS_DIF>(g_pD3DDevice, &vertices[0][0], 2, 3, sprite);
+			pVbTemp = new TVertexBuffer<VERTEXFORMAT_POS_DIF>(g_p_d3d_device, &vertices[0][0], 2, 3, sprite);
 			pVbTemp->SetShader(shaderSet[VERTEXFORMAT_POS_DIF]);
 		}
 
@@ -436,21 +442,21 @@ namespace game_play
 		glEnable(GL_ALPHA_TEST);
 		glAlphaFuncx(GL_GREATER, 0.0f);
 #else
-		g_pD3DDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-		g_pD3DDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-		g_pD3DDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+		g_p_d3d_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+		g_p_d3d_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+		g_p_d3d_device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
 
-		g_pD3DDevice->SetRenderState(D3DRS_ALPHATESTENABLE, 1);
-		g_pD3DDevice->SetRenderState(D3DRS_ALPHAREF, 0x00);
-		g_pD3DDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+		g_p_d3d_device->SetRenderState(D3DRS_ALPHATESTENABLE, 1);
+		g_p_d3d_device->SetRenderState(D3DRS_ALPHAREF, 0x00);
+		g_p_d3d_device->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
 
-		g_pD3DDevice->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0);
-		g_pD3DDevice->SetTextureStageState(0, D3DTSS_COLORARG1,     D3DTA_TEXTURE);
-		g_pD3DDevice->SetTextureStageState(0, D3DTSS_COLORARG2,     D3DTA_DIFFUSE);
-		g_pD3DDevice->SetTextureStageState(0, D3DTSS_COLOROP,       D3DTOP_MODULATE);
-		g_pD3DDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1,     D3DTA_TEXTURE);
-		g_pD3DDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2,     D3DTA_DIFFUSE);
-		g_pD3DDevice->SetTextureStageState(0, D3DTSS_ALPHAOP,       D3DTOP_MODULATE);
+		g_p_d3d_device->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0);
+		g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG1,     D3DTA_TEXTURE);
+		g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2,     D3DTA_DIFFUSE);
+		g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLOROP,       D3DTOP_MODULATE);
+		g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG1,     D3DTA_TEXTURE);
+		g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2,     D3DTA_DIFFUSE);
+		g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP,       D3DTOP_MODULATE);
 #endif
 		glViewport(0, 0, 800, 480);
 
@@ -543,10 +549,10 @@ namespace game_play
 
 		p_d3d_attrib->Process();
 
-		g_pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
+		g_p_d3d_device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
 						  D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
-		if (_SUCCEEDED(g_pD3DDevice->BeginScene()))
+		if (_SUCCEEDED(g_p_d3d_device->BeginScene()))
 		{
 			SetupMatrices();
 
@@ -562,23 +568,23 @@ namespace game_play
 					TD3DMatrix matWVP;
 					TD3DMatrix matVP;
 
-					g_pD3DDevice->GetTransform(D3DTS_VIEW, &matView);
-					g_pD3DDevice->GetTransform(D3DTS_PROJECTION, &matProj);
+					g_p_d3d_device->GetTransform(D3DTS_VIEW, &matView);
+					g_p_d3d_device->GetTransform(D3DTS_PROJECTION, &matProj);
 
 					D3DXMatrixMultiply(&matVP, &matView, &matProj);
 					D3DXMatrixTranspose(&matVP, &matVP);
 
-					g_pD3DDevice->SetVertexShaderConstantF(16, (float*)&matVP, 4);
+					g_p_d3d_device->SetVertexShaderConstantF(16, (float*)&matVP, 4);
 #if 1
 					pVbFixedMap->Begin();
 					{
-						float xOffset = pMainPlayer->attribute.pos.x - floorf(pMainPlayer->attribute.pos.x);
-						float yOffset = pMainPlayer->attribute.pos.y - floorf(pMainPlayer->attribute.pos.y);
+						float x_offset = pMainPlayer->attribute.pos.x - floorf(pMainPlayer->attribute.pos.x);
+						float y_offset = pMainPlayer->attribute.pos.y - floorf(pMainPlayer->attribute.pos.y);
 
 						TD3DMatrix matWorld;
 						D3DXMatrixIdentity(&matWorld);
 						D3DXMatrixTranslation(&matWorld, - pMainPlayer->attribute.pos.x, 0.0f, - pMainPlayer->attribute.pos.y);
-						g_pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+						g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
 
 						pVbFixedMap->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2*29*29);
 					}
@@ -588,8 +594,8 @@ namespace game_play
 
 					// 바닥 그리기
 					{
-						float xOffset = pMainPlayer->attribute.pos.x - floorf(pMainPlayer->attribute.pos.x);
-						float yOffset = pMainPlayer->attribute.pos.y - floorf(pMainPlayer->attribute.pos.y);
+						float x_offset = pMainPlayer->attribute.pos.x - floorf(pMainPlayer->attribute.pos.x);
+						float y_offset = pMainPlayer->attribute.pos.y - floorf(pMainPlayer->attribute.pos.y);
 
 						for (int y = -MAP_RANGE; y <= MAP_RANGE; y++)
 						for (int x = -MAP_RANGE; x <= MAP_RANGE; x++)
@@ -598,21 +604,21 @@ namespace game_play
 
 							TD3DMatrix matWorld;
 							D3DXMatrixIdentity(&matWorld);
-							D3DXMatrixTranslation(&matWorld, 1.0f * x - xOffset, 0.0f, 1.0f * y - yOffset);
-							g_pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+							D3DXMatrixTranslation(&matWorld, 1.0f * x - x_offset, 0.0f, 1.0f * y - y_offset);
+							g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
 
 							{
 								D3DXMatrixMultiply(&matWV, &matWorld, &matView);
 								D3DXMatrixMultiply(&matWVP, &matWV, &matProj);
 
 								D3DXMatrixTranspose(&matWVP, &matWVP);
-								g_pD3DDevice->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
+								g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
 
 								D3DXMatrixTranspose(&matWV, &matWV);
-								g_pD3DDevice->SetVertexShaderConstantF(8, (float*)&matWV, 4);
+								g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&matWV, 4);
 
 								D3DXMatrixTranspose(&matWorld, &matWorld);
-								g_pD3DDevice->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
+								g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
 							}
 
 							pVbTile->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, tile*NUM_OF_VERTICES, 10);
@@ -637,20 +643,20 @@ namespace game_play
 							TD3DMatrix matWorld;
 							D3DXMatrixIdentity(&matWorld);
 							D3DXMatrixTranslation(&matWorld, 1.0f * x - pMainPlayer->attribute.pos.x, 0.26f, 1.0f * y - pMainPlayer->attribute.pos.y);
-							g_pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+							g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
 
 							{
 								D3DXMatrixMultiply(&matWV, &matWorld, &matView);
 								D3DXMatrixMultiply(&matWVP, &matWV, &matProj);
 
 								D3DXMatrixTranspose(&matWVP, &matWVP);
-								g_pD3DDevice->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
+								g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
 
 								D3DXMatrixTranspose(&matWV, &matWV);
-								g_pD3DDevice->SetVertexShaderConstantF(8, (float*)&matWV, 4);
+								g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&matWV, 4);
 
 								D3DXMatrixTranspose(&matWorld, &matWorld);
-								g_pD3DDevice->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
+								g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
 							}
 
 							pVbTile->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, wall*NUM_OF_VERTICES, 10);
@@ -666,10 +672,10 @@ pVbTile->Flush();
 			Test(0);
 			Test(1);
 
-			g_pD3DDevice->EndScene();
+			g_p_d3d_device->EndScene();
 		}
 
-		g_pD3DDevice->Present(NULL, NULL, 0, NULL);
+		g_p_d3d_device->Present(NULL, NULL, 0, NULL);
 
 		return true;
 	}

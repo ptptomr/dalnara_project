@@ -66,7 +66,7 @@ const AppCallback* g_app_callback_list[STATE_EXIT+1] =
 	NULL,
 };
 
-IDirect3DDevice9* g_pD3DDevice = 0;
+IDirect3DDevice9* g_p_d3d_device = 0;
 
 
 class CSystem
@@ -117,14 +117,14 @@ public:
 		g_p_gfx_device->SetLayerDesc(s_layer_option);
 		g_p_gfx_device->GetSurface(&g_p_back_buffer);
 
-		g_pD3DDevice = new IDirect3DDevice9(g_p_gfx_device);
+		g_p_d3d_device = new IDirect3DDevice9(g_p_gfx_device);
 	}
 	~CSystem()
 	{
-		if (g_pD3DDevice)
+		if (g_p_d3d_device)
 		{
-			g_pD3DDevice->Release();
-			g_pD3DDevice = NULL;
+			g_p_d3d_device->Release();
+			g_p_d3d_device = NULL;
 		}
 
 		g_p_gfx_device->Release();

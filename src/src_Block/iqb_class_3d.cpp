@@ -123,11 +123,11 @@ void IDirect3DDevice9::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
 {
 }
 
-void IDirect3DDevice9::SetVertexShader(IDirect3DVertexShader9* pShader)
+void IDirect3DDevice9::SetVertexShader(IDirect3DVertexShader9* p_shader)
 {
 }
 
-void IDirect3DDevice9::SetPixelShader(IDirect3DPixelShader9* pShader)
+void IDirect3DDevice9::SetPixelShader(IDirect3DPixelShader9* p_shader)
 {
 }
 
@@ -276,7 +276,7 @@ void IDirect3DDevice9::SetRenderState(D3DRENDERSTATETYPE state, DWORD value)
 		glFogf(GL_FOG_END, ConvertFloat(value));
 		break;
 	case D3DRS_RANGEFOGENABLE:
-		//?? m_pD3DDevice->SetRenderState(D3DRS_RANGEFOGENABLE, 1);
+		//?? m_p_d3d_device->SetRenderState(D3DRS_RANGEFOGENABLE, 1);
 		break;
 
 	case D3DRS_ALPHABLENDENABLE:
@@ -482,28 +482,21 @@ void IDirect3DTexture9::GetLevelDesc(DWORD level, D3DSURFACE_DESC* p_desc)
 ////////////////////////////////////////////////////////////////////////////////
 // Utility
 
-void D3DXCreateTextureFromFileA(IDirect3DDevice9* pD3DDevice, const char* szFileName, IDirect3DTexture9** ppTexture)
+void D3DXCreateTextureFromFileA(IDirect3DDevice9* p_d3d_device, const char* sz_file_name, IDirect3DTexture9** ppTexture)
 {
-	assert(pD3DDevice);
-	assert(pD3DDevice->m_p_gfx_device);
+	assert(p_d3d_device);
+	assert(p_d3d_device->m_p_gfx_device);
 	assert(ppTexture);
 
 	avej_lite::IGfxSurface* p_res_sprite = 0;
 	
-	if (!pD3DDevice->m_p_gfx_device->CreateSurfaceFrom(szFileName, &p_res_sprite))
+	if (!p_d3d_device->m_p_gfx_device->CreateSurfaceFrom(sz_file_name, &p_res_sprite))
 		return; //??
 
 	*ppTexture = new IDirect3DTexture9;
 
 	(*ppTexture)->m_p_surface = p_res_sprite;
 }
-
-/*
-	if (!g_p_gfx_device->CreateSurfaceFrom(p_res_shit_img, sizeof_p_res_shit_img(), &g_p_res_sprite))
-	{
-		SF_ASSERT(0 && "cannot load the specified image. (shit_img.tga)");
-	}
-*/
 
 ////////////////////////////////////////////////////////////////////////////////
 // Matrix

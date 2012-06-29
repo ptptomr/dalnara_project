@@ -280,18 +280,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="util"
-			>
-			<File
-				RelativePath=".\util\util_render_text.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\util\util_render_text.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="src_Block"
 			>
 			<File
@@ -303,15 +291,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src_Block\iqb_actor_ending.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src_Block\iqb_actor_game_play.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src_Block\iqb_actor_main.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src_Block\iqb_actor_team_logo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src_Block\iqb_actor_title.cpp"
 				>
 			</File>
 			<File
@@ -323,11 +311,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src_Block\iqb_actor_game_play.cpp"
+				RelativePath=".\src_Block\iqb_actor_team_logo.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src_Block\iqb_actor_ending.cpp"
+				RelativePath=".\src_Block\iqb_actor_title.cpp"
 				>
 			</File>
 			<File

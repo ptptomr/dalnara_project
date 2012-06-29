@@ -5,37 +5,48 @@
 #include "iqb_base_type.h"
 #include "iqb_class_3d.h"
 
-class CSm3DProjection: public ISmActor
+namespace erio
 {
-public:
-	enum
+	class CSm3DProjection: public ISmActor
 	{
-		LOW_INDEX  = 0,
-		HIGH_INDEX = 100,
+	public:
+		enum
+		{
+			LOW_INDEX  = 0,
+			HIGH_INDEX = 100,
+		};
+		enum TProjectionMode
+		{
+			PROJECTIONMODE_PERSPECTIVE,
+			PROJECTIONMODE_ORTHOGONAL,
+		};
+
+	public:
+		CSm3DProjection(IDirect3DDevice9* p_d3d_device, float screen_ratio);
+
+		unsigned long Process(long ref_time = 0, ISmActor* p_sender = 0);
+
+		TProjectionMode GetMode(void)
+		{
+			return m_projection_mode;
+		}
+
+		void SetMode(TProjectionMode mode)
+		{
+			m_SetProjectionMode(mode);
+		}
+
+	private:
+		IDirect3DDevice9* m_p_d3d_device;
+		TD3DMatrix        m_projection_matrix[HIGH_INDEX+1];
+		TProjectionMode   m_projection_mode;
+		int               m_projection_step;
+
+		void m_InitiaizeProjectionMatrix(float screen_ratio);
+		void m_SetProjectionMode(TProjectionMode mode);
+		void m_Apply(void);
 	};
-	enum TProjectionMode
-	{
-		pmPerspecive,
-		pmOrthogonal,
-	};
 
-private:
-	IDirect3DDevice9* m_pD3DDevice;
-	TD3DMatrix m_projectionMatrix[HIGH_INDEX+1];
-	TProjectionMode m_projectionMode;
-	int m_projectionStep;
-
-	void m_InitiaizeProjectionMatrix(float screenRatio);
-	void m_SetProjectionMode(TProjectionMode mode);
-	void m_Apply(void);
-
-public:
-	CSm3DProjection(IDirect3DDevice9* pD3DDevice, float screenRatio);
-	unsigned long Process(long refTime = 0, ISmActor* pSender = 0);
-
-	TProjectionMode GetMode(void) { return m_projectionMode; }
-	void SetMode(TProjectionMode mode) { m_SetProjectionMode(mode); }
-
-};
+} // namespace erio
 
 #endif // #ifndef __IQB_CLASS_3D_PROJECTIOM_H__

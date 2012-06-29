@@ -4,7 +4,6 @@
 
 #include "iqb_z_config.h"
 #include "iqb_z_util.h"
-//#include "iqb_data_res.h"
 
 namespace erio
 {
@@ -13,7 +12,6 @@ namespace erio
 
 	extern avej_lite::IGfxDevice*  g_p_gfx_device;
 	extern avej_lite::IGfxSurface* g_p_back_buffer;
-	extern avej_lite::IGfxSurface* g_p_res_sprite;
 
 	////////////////////////////////////////////////////////////////////////////
 	//
@@ -29,6 +27,5 @@ namespace erio
 	}
 
 } // namespace erio
-
 
 #endif // #ifndef __IQB_BASE_GFX_H__

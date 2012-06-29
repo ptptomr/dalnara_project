@@ -4,192 +4,204 @@
 
 #include "iqb_base_type.h"
 
-struct TMapData
+namespace erio
 {
-	int tile;
-	int wall;
-};
-
-class CTileMap
-{
-private:
-	int m_xMapSize;
-	int m_yMapSize;
-	int m_xMapPitch;
-	int m_xOffset;
-	int m_yOffset;
-
-	TMapData* m_pMapData;
-
-public:
-	CTileMap(const char* mapData[], int xOffset = 0, int yOffset = 0)
-		: m_xMapSize(0), m_yMapSize(0), m_xMapPitch(0), m_pMapData(0), m_xOffset(xOffset), m_yOffset(yOffset)
+	struct TMapData
 	{
-		Init(mapData);
-	}
+		int tile;
+		int wall;
+	};
 
-	~CTileMap(void)
+	class CTileMap
 	{
-		delete[] m_pMapData;
-	}
+	private:
+		int m_x_map_size;
+		int m_y_map_size;
+		int m_x_map_pitch;
+		int m_x_offset;
+		int m_y_offset;
 
-	void Init(const char* mapData[])
-	{
-		int i, j;
-		TMapData* pMap;
+		TMapData* m_p_map_data;
 
-		m_xMapSize = strlen(mapData[0]);
-		m_yMapSize = 0;
-		while (mapData[m_yMapSize])
-			++m_yMapSize;
-		m_xMapPitch = m_xMapSize;
-
-		m_pMapData = new TMapData[m_xMapPitch * m_yMapSize];
-
-		for (j = 0; j < m_yMapSize; j++)
+	public:
+		CTileMap(const char* map_data[], int x_offset = 0, int y_offset = 0)
+			: m_x_map_size(0)
+			, m_y_map_size(0)
+			, m_x_map_pitch(0)
+			, m_p_map_data(0)
+			, m_x_offset(x_offset)
+			, m_y_offset(y_offset)
 		{
-			pMap = m_pMapData;
-			pMap += j * m_xMapPitch;
-			for (i = 0; i < m_xMapSize; i++)
+			Init(map_data);
+		}
+
+		~CTileMap(void)
+		{
+			delete[] m_p_map_data;
+		}
+
+		void Init(const char* map_data[])
+		{
+			int i, j;
+			TMapData* p_map;
+
+			m_x_map_size = strlen(map_data[0]);
+			m_y_map_size = 0;
+
+			while (map_data[m_y_map_size])
+				++m_y_map_size;
+
+			m_x_map_pitch = m_x_map_size;
+
+			m_p_map_data = new TMapData[m_x_map_pitch * m_y_map_size];
+
+			for (j = 0; j < m_y_map_size; j++)
 			{
-				int data = mapData[m_yMapSize-1-j][i] - '0';
+				p_map = m_p_map_data;
+				p_map += j * m_x_map_pitch;
 
-				if (data < 1)
+				for (i = 0; i < m_x_map_size; i++)
 				{
-					pMap->tile = data;
-					pMap->wall = 0;
-				}
-				else
-				{
-					pMap->tile = 0;
-					pMap->wall = data;
-				}
+					int data = map_data[m_y_map_size-1-j][i] - '0';
 
-				++pMap;
+					if (data < 1)
+					{
+						p_map->tile = data;
+						p_map->wall = 0;
+					}
+					else
+					{
+						p_map->tile = 0;
+						p_map->wall = data;
+					}
+
+					++p_map;
+				}
 			}
 		}
-	}
 
-	TMapData* m_GetMapData(int& x, int& y) const
-	{
-		x -= m_xOffset;
-		y -= m_yOffset;
+		TMapData* m_GetMapData(int& out_x, int& out_y) const
+		{
+			out_x -= m_x_offset;
+			out_y -= m_y_offset;
 
-		if ((x < 0) || (x >= m_xMapSize) || (y < 0) || (y >= m_yMapSize))
-			return NULL;
+			if ((out_x < 0) || (out_x >= m_x_map_size) || (out_y < 0) || (out_y >= m_y_map_size))
+				return NULL;
 
-		if (m_pMapData == NULL)
-			return NULL;
+			if (m_p_map_data == NULL)
+				return NULL;
 
-		TMapData* pMap = m_pMapData;
-		pMap += y * m_xMapPitch + x;
+			TMapData* p_map = m_p_map_data;
+			p_map += out_y * m_x_map_pitch + out_x;
 
-		return pMap;
-	}
+			return p_map;
+		}
 
 
-	bool IsWallMap(int x, int y) const
-	{
-		TMapData* pMap = m_GetMapData(x, y);
+		bool IsWallMap(int x, int y) const
+		{
+			TMapData* p_map = m_GetMapData(x, y);
 
-		if (pMap)
-			return (pMap->wall > 0);
-		else
-			return false;
-	}
+			if (p_map)
+				return (p_map->wall > 0);
+			else
+				return false;
+		}
 
-	bool IsMoveableMap(int x, int y) const
-	{
-		TMapData* pMap = m_GetMapData(x, y);
+		bool IsMoveableMap(int x, int y) const
+		{
+			TMapData* p_map = m_GetMapData(x, y);
 
-		if (pMap)
-			return (pMap->wall == 0);
-		else
+			if (p_map)
+				return (p_map->wall == 0);
+			else
+				return true;
+		}
+
+		bool IsMoveableMapRect(float fx, float fy, float radius) const
+		{
+			int xTest, yTest;
+
+			xTest = int(fx       +10000.f)-10000;
+			yTest = int(fy       +10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
+			xTest = int(fx-radius+10000.f)-10000;
+			yTest = int(fy       +10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
+			xTest = int(fx+radius+10000.f)-10000;
+			yTest = int(fy       +10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
+			xTest = int(fx       +10000.f)-10000;
+			yTest = int(fy-radius+10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
+			xTest = int(fx       +10000.f)-10000;
+			yTest = int(fy+radius+10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
+			xTest = int(fx-radius+10000.f)-10000;
+			yTest = int(fy-radius+10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
+			xTest = int(fx+radius+10000.f)-10000;
+			yTest = int(fy-radius+10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
+			xTest = int(fx-radius+10000.f)-10000;
+			yTest = int(fy+radius+10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
+			xTest = int(fx+radius+10000.f)-10000;
+			yTest = int(fy+radius+10000.f)-10000;
+			if (!IsMoveableMap(xTest, yTest))
+				return false;
+
 			return true;
-	}
+		}
 
-	bool IsMoveableMapRect(float fx, float fy, float radius) const
-	{
-		int xTest, yTest;
+		int  GetTile(int x, int y) const
+		{
+			TMapData* p_map = m_GetMapData(x, y);
 
-		xTest = int(fx       +10000.f)-10000;
-		yTest = int(fy       +10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
+			if (p_map)
+				return p_map->tile;
+			else
+				return 0;
+		}
 
-		xTest = int(fx-radius+10000.f)-10000;
-		yTest = int(fy       +10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
+		int  GetWall(int x, int y) const
+		{
+			TMapData* p_map = m_GetMapData(x, y);
 
-		xTest = int(fx+radius+10000.f)-10000;
-		yTest = int(fy       +10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
+			if (p_map)
+				return p_map->wall;
+			else
+				return 0;
+		}
 
-		xTest = int(fx       +10000.f)-10000;
-		yTest = int(fy-radius+10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
+		int  GetMapSizeX(void) const
+		{
+			return m_x_map_size;
+		}
 
-		xTest = int(fx       +10000.f)-10000;
-		yTest = int(fy+radius+10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
+		int  GetMapSizeY(void) const
+		{
+			return m_y_map_size;
+		}
 
-		xTest = int(fx-radius+10000.f)-10000;
-		yTest = int(fy-radius+10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
+	};
 
-		xTest = int(fx+radius+10000.f)-10000;
-		yTest = int(fy-radius+10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
-
-		xTest = int(fx-radius+10000.f)-10000;
-		yTest = int(fy+radius+10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
-
-		xTest = int(fx+radius+10000.f)-10000;
-		yTest = int(fy+radius+10000.f)-10000;
-		if (!IsMoveableMap(xTest, yTest))
-			return false;
-
-		return true;
-	}
-
-	int  GetTile(int x, int y) const
-	{
-		TMapData* pMap = m_GetMapData(x, y);
-
-		if (pMap)
-			return pMap->tile;
-		else
-			return 0;
-	}
-
-	int  GetWall(int x, int y) const
-	{
-		TMapData* pMap = m_GetMapData(x, y);
-
-		if (pMap)
-			return pMap->wall;
-		else
-			return 0;
-	}
-
-	int  XMapSize(void) const
-	{
-		return m_xMapSize;
-	}
-
-	int  YMapSize(void) const
-	{
-		return m_yMapSize;
-	}
-
-};
+} // namespace erio
 
 #endif // #ifndef __IQB_DATA_MAP_H__

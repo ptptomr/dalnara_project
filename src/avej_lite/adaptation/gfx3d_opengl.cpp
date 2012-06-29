@@ -306,7 +306,6 @@ namespace avej_lite { namespace gfx3d
 		glPopMatrix();
 	}
 
-
 	void SwapBuffers(void)
 	{
 		eglSwapBuffers(s_egl_attrib.egl_display, s_egl_attrib.egl_surface_window);

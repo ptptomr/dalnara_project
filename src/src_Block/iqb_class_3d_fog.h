@@ -5,22 +5,26 @@
 #include "iqb_base_type.h"
 #include "iqb_class_3d.h"
 
-const float FOG_START = 18.0f * 1.0f;
-const float FOG_END   = 30.0f * 1.0f;
-
-class CSm3DFog: public ISmActor
+namespace erio
 {
-private:
-	IDirect3DDevice9* m_pD3DDevice;
-	single m_fogStart;
-	single m_fogEnd;
+	const float FOG_START = 18.0f * 1.0f;
+	const float FOG_END   = 30.0f * 1.0f;
 
-	void m_Apply(void);
+	class CSm3DFog: public ISmActor
+	{
+	public:
+		CSm3DFog(IDirect3DDevice9* p_d3d_device);
 
-public:
-	CSm3DFog(IDirect3DDevice9* pD3DDevice);
-	unsigned long Process(long refTime = 0, ISmActor* pSender = 0);
+		unsigned long Process(long ref_time = 0, ISmActor* p_sender = 0);
 
-};
+	private:
+		IDirect3DDevice9* m_p_d3d_device;
+		single            m_fog_start;
+		single            m_fog_end;
+
+		void m_Apply(void);
+	};
+
+} // namespace erio
 
 #endif // #ifndef __IQB_CLASS_3D_FOG_H__

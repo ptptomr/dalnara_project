@@ -14,7 +14,7 @@ using namespace avej_lite;
 
 namespace erio
 {
-	extern IDirect3DDevice9* g_pD3DDevice;
+	extern IDirect3DDevice9* g_p_d3d_device;
 
 namespace title
 {
@@ -34,10 +34,10 @@ namespace title
 	{
 		gfx::SetFlatMode();
 
-		sprite = iu::shared_ptr<CTexture>(new CTexture(g_pD3DDevice, "team_logo.tga"));
+		sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "team_logo.tga"));
 		if (sprite->m_p_texture == 0)
 		{
-			sprite = iu::shared_ptr<CTexture>(new CTexture(g_pD3DDevice, "res_Block/team_logo.tga"));
+			sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "res_Block/team_logo.tga"));
 		}
 
 		return true;

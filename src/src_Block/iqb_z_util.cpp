@@ -1,15 +1,11 @@
 
-#pragma warning(disable: 4786)
-
-#include <vector>
-
 #include "iqb_z_config.h"
 #include "iqb_z_util.h"
 
-namespace erio
-{
+#pragma warning(disable: 4786)
+#include <vector>
 
-void util::ClearKeyBuffer(void)
+void erio::util::ClearKeyBuffer(void)
 {
 	avej_lite::CInputDevice& input_device = avej_lite::singleton<avej_lite::CInputDevice>::get();
 	input_device.UpdateInputState();
@@ -19,10 +15,7 @@ void util::ClearKeyBuffer(void)
 		input_device.WasKeyPressed(key);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// class CTextFileFromRes
-
-struct util::CTextFileFromRes::TImpl
+struct erio::util::CTextFileFromRes::TImpl
 {
 public:
 	TImpl(const tchar* sz_text_stream, int size)
@@ -91,22 +84,22 @@ private:
 
 };
 
-util::CTextFileFromRes::CTextFileFromRes(const tchar* sz_text_stream, int size)
-: m_p_impl(new TImpl(sz_text_stream, size))
+erio::util::CTextFileFromRes::CTextFileFromRes(const tchar* sz_text_stream, int size)
+	: m_p_impl(new TImpl(sz_text_stream, size))
 {
 }
 
-util::CTextFileFromRes::~CTextFileFromRes()
+erio::util::CTextFileFromRes::~CTextFileFromRes()
 {
 	delete m_p_impl;
 }
 
-bool util::CTextFileFromRes::IsValid(void)
+bool erio::util::CTextFileFromRes::IsValid(void)
 {
 	return m_p_impl->IsValid();
 }
 
-bool util::CTextFileFromRes::GetString(tchar* out_str, int str_len)
+bool erio::util::CTextFileFromRes::GetString(tchar* out_str, int str_len)
 {
 	return m_p_impl->GetString(out_str, str_len);
 }
@@ -114,73 +107,81 @@ bool util::CTextFileFromRes::GetString(tchar* out_str, int str_len)
 ////////////////////////////////////////////////////////////////////////////////
 // ComposeString()
 
-static void s_Int2Str(tchar **ppBuffer, int value)
+namespace
 {
-	if (value == 0)
+	void s_Int2Str(tchar** pp_buffer, int value)
 	{
-		*((*ppBuffer)++) = TCHAR('0');
-	}
-	else
-	{
-		if (value < 0)
+		if (value == 0)
 		{
-			*((*ppBuffer)++) = TCHAR('-');
-			value = -value;
+			*((*pp_buffer)++) = TCHAR('0');
 		}
+		else
+		{
+			if (value < 0)
+			{
+				*((*pp_buffer)++) = TCHAR('-');
+				value = -value;
+			}
 
-		int nNum = 0;
-		int temp = value;
-		while (temp)
-		{
-			temp = temp / 10;
-			++nNum;
-		}
+			int count = 0;
+			int temp = value;
 
-		int nLoop = nNum;
-		while (nLoop-- > 0)
-		{
-			(*ppBuffer)[nLoop] = (value % 10) + TCHAR('0');
-			value = value / 10;
+			while (temp)
+			{
+				temp = temp / 10;
+				++count;
+			}
+
+			int num_loop = count;
+
+			while (num_loop-- > 0)
+			{
+				(*pp_buffer)[num_loop] = (value % 10) + TCHAR('0');
+				value = value / 10;
+			}
+
+			*pp_buffer += count;
 		}
-		*ppBuffer += nNum;
 	}
 }
 
-void util::ComposeString(tchar pBuffer[], const tchar* szFormat, const int data ...)
+void erio::util::ComposeString(tchar p_buffer[], const tchar* sz_format, const int data ...)
 {
-	if (pBuffer == 0)
+	if (p_buffer == 0)
 		return;
 
-	const int* pData = &data;
+	const int* p_data = &data;
 
-	while (*szFormat)
+	while (*sz_format)
 	{
-		if (*szFormat != TCHAR('@'))
+		if (*sz_format != TCHAR('@'))
 		{
-			*pBuffer++ = *szFormat++;
+			*p_buffer++ = *sz_format++;
 			continue;
 		}
-		++szFormat;
-		s_Int2Str(&pBuffer, *pData++);
+		++sz_format;
+		s_Int2Str(&p_buffer, *p_data++);
 	}
 
-	*pBuffer = 0;
+	*p_buffer = 0;
 }
 
-int util::tstrlen(const tchar* str1)
+int erio::util::tstrlen(const tchar* str1)
 {
 	const tchar* str2 = str1;
+
 	while (*str2++)
 		;
+
 	return str2-str1-1;
 }
 
-tchar* util::tstrcpy(tchar* dest, const tchar* src)
+tchar* erio::util::tstrcpy(tchar* dest, const tchar* src)
 {
 	return util::tstrncpy(dest, src, util::tstrlen(src)+1);
 }
 
-tchar* util::tstrncpy(tchar* dest, const tchar* src, size_t n)
+tchar* erio::util::tstrncpy(tchar* dest, const tchar* src, size_t n)
 {
 	size_t i;
 
@@ -193,12 +194,12 @@ tchar* util::tstrncpy(tchar* dest, const tchar* src, size_t n)
 	return dest;
 }
 
-tchar* util::tstrcat(tchar* dest, const tchar* src)
+tchar* erio::util::tstrcat(tchar* dest, const tchar* src)
 {
 	return util::tstrncat(dest, src, util::tstrlen(src)+1);
 }
 
-tchar* util::tstrncat(tchar* dest, const tchar* src, size_t n)
+tchar* erio::util::tstrncat(tchar* dest, const tchar* src, size_t n)
 {
    size_t dest_len = util::tstrlen(dest);
    size_t i;
@@ -211,7 +212,7 @@ tchar* util::tstrncat(tchar* dest, const tchar* src, size_t n)
    return dest;
 }
 
-int util::tstrncmp(const tchar* s1, const tchar* s2, size_t n)
+int erio::util::tstrncmp(const tchar* s1, const tchar* s2, size_t n)
 {
 	if (n == 0)
 		return 0;
@@ -230,7 +231,7 @@ int util::tstrncmp(const tchar* s1, const tchar* s2, size_t n)
 	return (*s1 > *s2) ? 1 : -1;
 }
 
-int util::tnumchar(const tchar* str1)
+int erio::util::tnumchar(const tchar* str1)
 {
 	if (sizeof(tchar) == 1)
 	{
@@ -248,5 +249,3 @@ int util::tnumchar(const tchar* str1)
 		return count;
 	}
 }
-
-} // namespace erio
