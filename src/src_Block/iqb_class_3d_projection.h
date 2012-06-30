@@ -1,6 +1,6 @@
 
-#ifndef __IQB_CLASS_3D_PROJECTIOM_H__
-#define __IQB_CLASS_3D_PROJECTIOM_H__
+#ifndef __IQB_CLASS_3D_PROJECTION_H__
+#define __IQB_CLASS_3D_PROJECTION_H__
 
 #include "iqb_base_type.h"
 #include "iqb_class_3d.h"
@@ -49,4 +49,4 @@ namespace erio
 
 } // namespace erio
 
-#endif // #ifndef __IQB_CLASS_3D_PROJECTIOM_H__
+#endif // #ifndef __IQB_CLASS_3D_PROJECTION_H__
