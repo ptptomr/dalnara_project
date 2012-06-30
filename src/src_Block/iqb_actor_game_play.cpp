@@ -9,10 +9,16 @@
 #include "iqb_class_3d_texture.h"
 #include "iqb_class_3d_attrib.h"
 #include "iqb_data_map.h"
+
 #include <map>
 #include <math.h>
 
 using namespace avej_lite;
+
+namespace erio
+{
+	extern IDirect3DDevice9* g_p_d3d_device;
+}
 
 namespace
 {
@@ -38,11 +44,11 @@ namespace
 		}
 	};
 
-	void ConvertIsometricToVertice(TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData vertices[], unsigned int count, TBounds srcRect, IDirect3DTexture9* pTexture)
+	void s_ConvertIsometricToVertice(TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData vertices[], unsigned int count, TBounds src_rect, IDirect3DTexture9* p_texture)
 	{
 		const float MAGIC_NUMBER = 23.0f;
-		const float readWidth  = sqrtf(powf(MAGIC_NUMBER,2.0f)+powf(srcRect.x2-srcRect.x1,2.0f)) / 2.0f;
-		const float TALL = (srcRect.y2 - srcRect.y1 - MAGIC_NUMBER) / readWidth;
+		const float read_width  = sqrtf(powf(MAGIC_NUMBER,2.0f)+powf(src_rect.x2-src_rect.x1,2.0f)) / 2.0f;
+		const float TALL = (src_rect.y2 - src_rect.y1 - MAGIC_NUMBER) / read_width;
 
 		// Vertex position 정보 만들기
 		{
@@ -72,22 +78,22 @@ namespace
 		// Vertex UV 정보 만들기
 		{
 			D3DSURFACE_DESC desc;
-			pTexture->GetLevelDesc(0, &desc);
+			p_texture->GetLevelDesc(0, &desc);
 
-			float wTexture = float(desc.Width);
-			float hTexture = float(desc.Height);
+			float w_texture = float(desc.Width);
+			float h_texture = float(desc.Height);
 
-			float srcRect_x0 = (srcRect.x1 + srcRect.x2) / 2.0f;
+			float src_rect_x0 = (src_rect.x1 + src_rect.x2) / 2.0f;
 
 			/*
 				(x1,y2) -> (x1,y1) -> (x2,y2) -> (x2,y1) 순서
 			*/
-			vertices[ 4].tex_pos = TD3DVector2(srcRect.x1 + 0.5f, srcRect.y2 - MAGIC_NUMBER / 2.0f);
-			vertices[ 5].tex_pos = TD3DVector2(srcRect.x1 + 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
-			vertices[ 6].tex_pos = TD3DVector2(srcRect_x0,        srcRect.y2 + 0.5f);
-			vertices[ 7].tex_pos = TD3DVector2(srcRect_x0,        srcRect.y1 + MAGIC_NUMBER + 0.5f);
-			vertices[ 8].tex_pos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y2 - MAGIC_NUMBER / 2.0f);
-			vertices[ 9].tex_pos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
+			vertices[ 4].tex_pos = TD3DVector2(src_rect.x1 + 0.5f, src_rect.y2 - MAGIC_NUMBER / 2.0f);
+			vertices[ 5].tex_pos = TD3DVector2(src_rect.x1 + 0.5f, src_rect.y1 + MAGIC_NUMBER / 2.0f);
+			vertices[ 6].tex_pos = TD3DVector2(src_rect_x0,        src_rect.y2 + 0.5f);
+			vertices[ 7].tex_pos = TD3DVector2(src_rect_x0,        src_rect.y1 + MAGIC_NUMBER + 0.5f);
+			vertices[ 8].tex_pos = TD3DVector2(src_rect.x2 - 0.5f, src_rect.y2 - MAGIC_NUMBER / 2.0f);
+			vertices[ 9].tex_pos = TD3DVector2(src_rect.x2 - 0.5f, src_rect.y1 + MAGIC_NUMBER / 2.0f);
 			// 반대편 기둥
 			vertices[10].tex_pos = vertices[ 6].tex_pos;
 			vertices[11].tex_pos = vertices[ 7].tex_pos;
@@ -96,56 +102,23 @@ namespace
 			// 꼭대기
 			vertices[ 0].tex_pos = vertices[ 5].tex_pos;
 			vertices[ 1].tex_pos = vertices[ 7].tex_pos;
-			vertices[ 2].tex_pos = TD3DVector2(srcRect.x2 - 0.5f, srcRect.y1 + MAGIC_NUMBER / 2.0f);
-			vertices[ 3].tex_pos = TD3DVector2(srcRect_x0, srcRect.y1);
+			vertices[ 2].tex_pos = TD3DVector2(src_rect.x2 - 0.5f, src_rect.y1 + MAGIC_NUMBER / 2.0f);
+			vertices[ 3].tex_pos = TD3DVector2(src_rect_x0, src_rect.y1);
 
 			for (int i = 0; i < count; i++)
 			{
-				vertices[i].tex_pos.x /= wTexture;
-				vertices[i].tex_pos.y /= hTexture;
+				vertices[i].tex_pos.x /= w_texture;
+				vertices[i].tex_pos.y /= h_texture;
 			}
 		}
 	}
-}
 
-namespace erio
-{
-	extern IDirect3DDevice9* g_p_d3d_device;
-
-	const char* MAP_DATA[] =
+	void s_SetupMatrices(void)
 	{
-		"00000000000",
-		"04111100300",
-		"01000000330",
-		"01022220300",
-		"01000020000",
-		"01000020000",
-		"00000022222",
-		"50000000200",
-		"00300000200",
-		"03333300000",
-		"00300000000",
-		NULL,
-	};
+		TD3DMatrix mat_world;
 
-	typedef iu::vector<CSmPlayer*> TPlayerList;
-
-	TPlayerList playerList;
-
-	CTileMap m_map(MAP_DATA, -5, -5);
-
-	iu::shared_ptr<CTexture> sprite;
-	std::map<EVertexFormat, TShaderSet> shaderSet;
-
-	TVertexBuffer<VERTEXFORMAT_POS_TEX>* pVbCharacter = 0;
-	TVertexIndexBuffer<VERTEXFORMAT_POS_NOR_TEX>* pVbTile = 0;
-	TVertexBuffer<VERTEXFORMAT_POS_DIF>* pVbTemp = 0;
-
-	TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>* pVbFixedMap = 0;
-
-	CSmPlayer* GetMainPlayer(void)
-	{
-		return (playerList.empty()) ? NULL : playerList[1];
+		D3DXMatrixIdentity(&mat_world);
+		g_p_d3d_device->SetTransform(D3DTS_WORLD, &mat_world);
 	}
 
 	class CRenderMode
@@ -159,7 +132,6 @@ namespace erio
 
 		CRenderMode(ERenderMode mode)
 		{
-
 			DWORD factor = 0xFF;
 
 			switch (mode)
@@ -181,6 +153,7 @@ namespace erio
 
 			shader::SetTexFactor(g_p_d3d_device, float(factor) / 255.0f);
 		};
+
 		~CRenderMode()
 		{
 			shader::SetTexFactor(g_p_d3d_device, 1.0f);
@@ -195,77 +168,133 @@ namespace erio
 		};
 	};
 
+	const char* MAP_DATA[] =
+	{
+		"00000000000",
+		"04111100300",
+		"01000000330",
+		"01022220300",
+		"01000020000",
+		"01000020000",
+		"00000022222",
+		"50000000200",
+		"00300000200",
+		"03333300000",
+		"00300000000",
+		NULL,
+	};
 
-////////////////////////////////////////////////////////////////////////////////
-// callback
+	typedef iu::vector<CSmPlayer*> TPlayerList;
+
+	struct TResource
+	{
+		TResource()
+			: p_d3d_attrib(0)
+			, p_vb_character(0)
+			, p_vb_tile(0)
+			, p_vb_temp(0)
+			, p_vb_fixed_map(0)
+			, map(MAP_DATA, -5, -5)
+		{
+		}
+		
+		~TResource()
+		{
+			for (TPlayerList::iterator obj = player_list.begin(); obj < player_list.end(); ++obj)
+			{
+				delete *obj;
+			}
+
+			delete p_vb_character;
+			delete p_vb_tile;
+			delete p_vb_fixed_map;
+			delete p_vb_temp;
+
+			delete p_d3d_attrib;
+		}
+
+		CSm3DAttrib* p_d3d_attrib;
+
+		TVertexBuffer<VERTEXFORMAT_POS_TEX>* p_vb_character;
+		TVertexIndexBuffer<VERTEXFORMAT_POS_NOR_TEX>* p_vb_tile;
+		TVertexBuffer<VERTEXFORMAT_POS_DIF>* p_vb_temp;
+		TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>* p_vb_fixed_map;
+
+		CTileMap map;
+		TPlayerList player_list;
+		iu::shared_ptr<CTexture> sprite;
+		std::map<EVertexFormat, TShaderSet> shader_set;
+	};
+}
+
+namespace erio
+{
 
 namespace game_play
 {
-	CSm3DAttrib* p_d3d_attrib = 0;
-
 	const int NUM_OF_VERTICES = 14;
-	avej_lite::IGfxSurface* p_res_sprite = 0;
 
-	void SetupMatrices(void)
+	TResource* p_resource = 0;
+
+	CSmPlayer* GetMainPlayer(void)
 	{
-		TD3DMatrix matWorld;
-
-		D3DXMatrixIdentity(&matWorld);
-		g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
+		return (p_resource->player_list.empty()) ? NULL : p_resource->player_list[1];
 	}
 
-	void Test(int mode)
+	void DisplayMainCharacter(int mode)
 	{
 		const int MAX_FACE_INC = 8;
 
 		CRenderMode state((CRenderMode::ERenderMode)mode);
 		
-		CSmPlayer* pMainPlayer = GetMainPlayer();
+		CSmPlayer* p_main_player = GetMainPlayer();
 
 		{
-			single angle = p_d3d_attrib->GetCamera()->GetAngle();
+			single angle = p_resource->p_d3d_attrib->GetCamera()->GetAngle();
 
-			pVbCharacter->Begin();
+			p_resource->p_vb_character->Begin();
 
-			TD3DMatrix matView;
-			TD3DMatrix matProj;
-			TD3DMatrix matWV;
-			TD3DMatrix matWVP;
-			TD3DMatrix matVP;
+			TD3DMatrix mat_view;
+			TD3DMatrix mat_proj;
+			TD3DMatrix mat_wv;
+			TD3DMatrix mat_wvp;
+			TD3DMatrix mat_vp;
 
-			g_p_d3d_device->GetTransform(D3DTS_VIEW, &matView);
-			g_p_d3d_device->GetTransform(D3DTS_PROJECTION, &matProj);
+			g_p_d3d_device->GetTransform(D3DTS_VIEW, &mat_view);
+			g_p_d3d_device->GetTransform(D3DTS_PROJECTION, &mat_proj);
 
-			D3DXMatrixMultiply(&matVP, &matView, &matProj);
-			D3DXMatrixTranspose(&matVP, &matVP);
+			D3DXMatrixMultiply(&mat_vp, &mat_view, &mat_proj);
+			D3DXMatrixTranspose(&mat_vp, &mat_vp);
 
-			g_p_d3d_device->SetVertexShaderConstantF(16, (float*)&matVP, 4);
+			g_p_d3d_device->SetVertexShaderConstantF(16, (float*)&mat_vp, 4);
 
-			for (TPlayerList::iterator obj = playerList.begin(); obj < playerList.end(); ++obj)
+			for (TPlayerList::iterator obj = p_resource->player_list.begin(); obj < p_resource->player_list.end(); ++obj)
 			{
 				{
-					TD3DMatrix matWorld, temp;
-					D3DXMatrixIdentity(&matWorld);
-					D3DXMatrixScaling(&matWorld, 1.0f, 1.8f, 1.0f);
-					D3DXMatrixRotationY(&temp, angle);
-					D3DXMatrixMultiply(&matWorld, &matWorld, &temp);
-					D3DXMatrixTranslation(&temp, 1.0f * (*obj)->attribute.pos.x - pMainPlayer->attribute.pos.x, 0.26f, 1.0f * (*obj)->attribute.pos.y - pMainPlayer->attribute.pos.y);
-					D3DXMatrixMultiply(&matWorld, &matWorld, &temp);
+					TD3DMatrix mat_world;
+					TD3DMatrix temp;
 
-					g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
+					D3DXMatrixIdentity(&mat_world);
+					D3DXMatrixScaling(&mat_world, 1.0f, 1.8f, 1.0f);
+					D3DXMatrixRotationY(&temp, angle);
+					D3DXMatrixMultiply(&mat_world, &mat_world, &temp);
+					D3DXMatrixTranslation(&temp, 1.0f * (*obj)->attribute.pos.x - p_main_player->attribute.pos.x, 0.26f, 1.0f * (*obj)->attribute.pos.y - p_main_player->attribute.pos.y);
+					D3DXMatrixMultiply(&mat_world, &mat_world, &temp);
+
+					g_p_d3d_device->SetTransform(D3DTS_WORLD, &mat_world);
 
 					{
-						D3DXMatrixMultiply(&matWV, &matWorld, &matView);
-						D3DXMatrixMultiply(&matWVP, &matWV, &matProj);
+						D3DXMatrixMultiply(&mat_wv, &mat_world, &mat_view);
+						D3DXMatrixMultiply(&mat_wvp, &mat_wv, &mat_proj);
 
-						D3DXMatrixTranspose(&matWVP, &matWVP);
-						g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
+						D3DXMatrixTranspose(&mat_wvp, &mat_wvp);
+						g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&mat_wvp, 4);
 
-						D3DXMatrixTranspose(&matWV, &matWV);
-						g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&matWV, 4);
+						D3DXMatrixTranspose(&mat_wv, &mat_wv);
+						g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&mat_wv, 4);
 
-						D3DXMatrixTranspose(&matWorld, &matWorld);
-						g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
+						D3DXMatrixTranspose(&mat_world, &mat_world);
+						g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&mat_world, 4);
 					}
 				}
 
@@ -282,27 +311,33 @@ namespace game_play
 				int ixFace = (*obj)->attribute.face * 2 + (*obj)->attribute.face_inc;
 				assert(ixFace >= 0 && ixFace < MAX_FACE_INC);
 
-				pVbCharacter->DrawPrimitive(D3DPT_TRIANGLESTRIP, ixFace*4, 2);
+				p_resource->p_vb_character->DrawPrimitive(D3DPT_TRIANGLESTRIP, ixFace*4, 2);
 			}
 
-			pVbCharacter->End();
+			p_resource->p_vb_character->End();
 		}
 	}
 
 	bool OnCreate(void)
 	{
-		p_d3d_attrib = new CSm3DAttrib(g_p_d3d_device, 800.0f / 480.0f);
+		p_resource = new TResource;
 
-		playerList.push_back(CreateCharacter(0, 0.0f, 0.0f));
-		playerList.push_back(CreateCharacter(1, 2.0f, -4.0f));
+		p_resource->p_d3d_attrib = new CSm3DAttrib(g_p_d3d_device, 800.0f / 480.0f);
 
-		sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "NewNeto1_512_256.tga"));
-		if (sprite->m_p_texture == 0)
+		p_resource->player_list.push_back(CreateCharacter(0, 0.0f, 0.0f));
+		p_resource->player_list.push_back(CreateCharacter(1, 2.0f, -4.0f));
+
+		p_resource->sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "NewNeto1_512_256.tga"));
+
+		if (p_resource->sprite->m_p_texture == 0)
 		{
-			sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "res_Block/NewNeto1_512_256.tga"));
+			p_resource->sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "res_Block/NewNeto1_512_256.tga"));
 		}
 
-		p_res_sprite = sprite->m_p_texture->m_p_surface;
+		/*
+			>> way to extract 'IGfxSurface' from 'CTexture'
+			avej_lite::IGfxSurface* p_res_sprite = p_resource->sprite->m_p_texture->m_p_surface;
+		*/
 
 		const int MAX_FACE_INC = 8;
 		{
@@ -311,7 +346,7 @@ namespace game_play
 				float x1, y1, x2, y2;
 			};
 
-			const TFRect srcRect[MAX_FACE_INC] =
+			const TFRect src_rect[MAX_FACE_INC] =
 			{
 				// ^
 				{261.0f / 512.0f,  59.0f / 256.0f, 298.0f / 512.0f, 116.0f / 256.0f},
@@ -332,34 +367,32 @@ namespace game_play
 			for (int i = 0; i < MAX_FACE_INC; i++)
 			{
 				vertices[i][0].position = D3DVECTOR3(-0.5f, 1.0f, 0.0f);
-				vertices[i][0].tex_pos.x = srcRect[i].x1;
-				vertices[i][0].tex_pos.y = srcRect[i].y1;
+				vertices[i][0].tex_pos.x = src_rect[i].x1;
+				vertices[i][0].tex_pos.y = src_rect[i].y1;
 				vertices[i][1].position = D3DVECTOR3( 0.5f, 1.0f, 0.0f);
-				vertices[i][1].tex_pos.x = srcRect[i].x2;
-				vertices[i][1].tex_pos.y = srcRect[i].y1;
+				vertices[i][1].tex_pos.x = src_rect[i].x2;
+				vertices[i][1].tex_pos.y = src_rect[i].y1;
 				vertices[i][2].position = D3DVECTOR3(vertices[i][0].position.x, 0.0f, vertices[i][0].position.z);
-				vertices[i][2].tex_pos.x = srcRect[i].x1;
-				vertices[i][2].tex_pos.y = srcRect[i].y2;
+				vertices[i][2].tex_pos.x = src_rect[i].x1;
+				vertices[i][2].tex_pos.y = src_rect[i].y2;
 				vertices[i][3].position = D3DVECTOR3(vertices[i][1].position.x, 0.0f, vertices[i][1].position.z);
-				vertices[i][3].tex_pos.x = srcRect[i].x2;
-				vertices[i][3].tex_pos.y = srcRect[i].y2;
+				vertices[i][3].tex_pos.x = src_rect[i].x2;
+				vertices[i][3].tex_pos.y = src_rect[i].y2;
 			}
 
-			pVbCharacter = new TVertexBuffer<VERTEXFORMAT_POS_TEX>(g_p_d3d_device, &vertices[0][0], MAX_FACE_INC, 4, sprite);
-			pVbCharacter->SetShader(shaderSet[VERTEXFORMAT_POS_TEX]);
+			p_resource->p_vb_character = new TVertexBuffer<VERTEXFORMAT_POS_TEX>(g_p_d3d_device, &vertices[0][0], MAX_FACE_INC, 4, p_resource->sprite);
+			p_resource->p_vb_character->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_TEX]);
 		}
 
 		{
-			const unsigned int NUM_OF_VERTICES = 14;
-
 			TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData vertices[7][NUM_OF_VERTICES];
 
-			ConvertIsometricToVertice(vertices[0], NUM_OF_VERTICES, TBounds( 66.0f, 105.0f, 130.0f, 138.0f), sprite.get()->m_p_texture);
-			ConvertIsometricToVertice(vertices[1], NUM_OF_VERTICES, TBounds( 66.0f, 139.0f, 130.0f, 174.0f), sprite.get()->m_p_texture);
-			ConvertIsometricToVertice(vertices[2], NUM_OF_VERTICES, TBounds( 66.0f,   1.0f, 130.0f, 104.0f), sprite.get()->m_p_texture);
-			ConvertIsometricToVertice(vertices[3], NUM_OF_VERTICES, TBounds(131.0f,   1.0f, 195.0f, 104.0f), sprite.get()->m_p_texture);
-			ConvertIsometricToVertice(vertices[4], NUM_OF_VERTICES, TBounds(199.0f,   1.0f, 257.0f,  57.0f), sprite.get()->m_p_texture);
-			ConvertIsometricToVertice(vertices[5], NUM_OF_VERTICES, TBounds(199.0f,  58.0f, 257.0f, 111.0f), sprite.get()->m_p_texture);
+			s_ConvertIsometricToVertice(vertices[0], NUM_OF_VERTICES, TBounds( 66.0f, 105.0f, 130.0f, 138.0f), p_resource->sprite.get()->m_p_texture);
+			s_ConvertIsometricToVertice(vertices[1], NUM_OF_VERTICES, TBounds( 66.0f, 139.0f, 130.0f, 174.0f), p_resource->sprite.get()->m_p_texture);
+			s_ConvertIsometricToVertice(vertices[2], NUM_OF_VERTICES, TBounds( 66.0f,   1.0f, 130.0f, 104.0f), p_resource->sprite.get()->m_p_texture);
+			s_ConvertIsometricToVertice(vertices[3], NUM_OF_VERTICES, TBounds(131.0f,   1.0f, 195.0f, 104.0f), p_resource->sprite.get()->m_p_texture);
+			s_ConvertIsometricToVertice(vertices[4], NUM_OF_VERTICES, TBounds(199.0f,   1.0f, 257.0f,  57.0f), p_resource->sprite.get()->m_p_texture);
+			s_ConvertIsometricToVertice(vertices[5], NUM_OF_VERTICES, TBounds(199.0f,  58.0f, 257.0f, 111.0f), p_resource->sprite.get()->m_p_texture);
 
 			short indice[10][3] =
 			{
@@ -370,8 +403,8 @@ namespace game_play
 				{10,11,12}, {12,11,13},
 			};
 			
-			pVbTile = new TVertexIndexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices[0][0], 7, NUM_OF_VERTICES, &indice[0][0], 30, sprite);
-			pVbTile->SetShader(shaderSet[VERTEXFORMAT_POS_NOR_TEX]);
+			p_resource->p_vb_tile = new TVertexIndexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices[0][0], 7, NUM_OF_VERTICES, &indice[0][0], 30, p_resource->sprite);
+			p_resource->p_vb_tile->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_NOR_TEX]);
 
 			{
 				const int RADIUS_WIDTH  = 14;
@@ -388,7 +421,7 @@ namespace game_play
 
 					for (int i = 0; i < 2; i++)
 					{
-						int tile = m_map.GetTile(x, y);
+						int tile = p_resource->map.GetTile(x, y);
 
 						p_vertext_data[3*i+0] = vertices[tile][indice[i][0]];
 						p_vertext_data[3*i+1] = vertices[tile][indice[i][1]];
@@ -403,8 +436,8 @@ namespace game_play
 					}
 				}
 
-				pVbFixedMap = new TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices_fm[0][0][0], (2*RADIUS_WIDTH+1) * (2*RADIUS_HEIGHT+1), 2*3, sprite);
-				pVbFixedMap->SetShader(shaderSet[VERTEXFORMAT_POS_NOR_TEX]);
+				p_resource->p_vb_fixed_map = new TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices_fm[0][0][0], (2*RADIUS_WIDTH+1) * (2*RADIUS_HEIGHT+1), 2*3, p_resource->sprite);
+				p_resource->p_vb_fixed_map->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_NOR_TEX]);
 			}
 		}
 
@@ -423,8 +456,8 @@ namespace game_play
 				}
 			};
 
-			pVbTemp = new TVertexBuffer<VERTEXFORMAT_POS_DIF>(g_p_d3d_device, &vertices[0][0], 2, 3, sprite);
-			pVbTemp->SetShader(shaderSet[VERTEXFORMAT_POS_DIF]);
+			p_resource->p_vb_temp = new TVertexBuffer<VERTEXFORMAT_POS_DIF>(g_p_d3d_device, &vertices[0][0], 2, 3, p_resource->sprite);
+			p_resource->p_vb_temp->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_DIF]);
 		}
 
 #if 1
@@ -458,36 +491,13 @@ namespace game_play
 		g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2,     D3DTA_DIFFUSE);
 		g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP,       D3DTOP_MODULATE);
 #endif
-		glViewport(0, 0, 800, 480);
 
 		return true;
 	}
 
 	bool OnDestory(void)
 	{
-		for (TPlayerList::iterator obj = playerList.begin(); obj < playerList.end(); ++obj)
-		{
-			delete *obj;
-		}
-
-		playerList.clear();
-
-		sprite.setNull();
-
-		delete pVbCharacter;
-		pVbCharacter = 0;
-
-		delete pVbTile;
-		pVbTile = 0;
-
-		delete pVbFixedMap;
-		pVbFixedMap = 0;
-
-		delete pVbTemp;
-		pVbTemp = 0;
-
-		delete p_d3d_attrib;
-		p_d3d_attrib = 0;
+		delete p_resource;
 
 		return true;
 	}
@@ -521,10 +531,10 @@ namespace game_play
 			{
 				const float RADIUS = 0.4f;
 
-				float xCenter  = GetMainPlayer()->attribute.pos.x + dx + 0.5f;
-				float yCenter  = GetMainPlayer()->attribute.pos.y + dy + 0.5f;
+				float x_center  = GetMainPlayer()->attribute.pos.x + dx + 0.5f;
+				float y_center  = GetMainPlayer()->attribute.pos.y + dy + 0.5f;
 
-				bool  walkable = m_map.IsMoveableMapRect(xCenter, yCenter, RADIUS);
+				bool  walkable = p_resource->map.IsMoveableMapRect(x_center, y_center, RADIUS);
 
 				if (walkable)
 				{
@@ -532,14 +542,14 @@ namespace game_play
 				}
 				else
 				{
-					walkable = m_map.IsMoveableMapRect(xCenter, GetMainPlayer()->attribute.pos.y + 0.5f, RADIUS);
+					walkable = p_resource->map.IsMoveableMapRect(x_center, GetMainPlayer()->attribute.pos.y + 0.5f, RADIUS);
 					if (walkable && (dx != 0.0f))
 					{
 						GetMainPlayer()->Move(dx, 0.0f);
 					}
 					else
 					{
-						walkable = m_map.IsMoveableMapRect(GetMainPlayer()->attribute.pos.x + 0.5f, yCenter, RADIUS);
+						walkable = p_resource->map.IsMoveableMapRect(GetMainPlayer()->attribute.pos.x + 0.5f, y_center, RADIUS);
 						if (walkable && (dy != 0.0f))
 							GetMainPlayer()->Move(0.0f, dy);
 					}
@@ -547,130 +557,130 @@ namespace game_play
 			}
 		}
 
-		p_d3d_attrib->Process();
+		p_resource->p_d3d_attrib->Process();
 
 		g_p_d3d_device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
 						  D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
 		if (_SUCCEEDED(g_p_d3d_device->BeginScene()))
 		{
-			SetupMatrices();
+			s_SetupMatrices();
 
 			{
-				CSmPlayer* pMainPlayer = GetMainPlayer();
+				CSmPlayer* p_main_player = GetMainPlayer();
 
 				{
 					const int MAP_RANGE = 14;
 
-					TD3DMatrix matView;
-					TD3DMatrix matProj;
-					TD3DMatrix matWV;
-					TD3DMatrix matWVP;
-					TD3DMatrix matVP;
+					TD3DMatrix mat_view;
+					TD3DMatrix mat_proj;
+					TD3DMatrix mat_wv;
+					TD3DMatrix mat_wvp;
+					TD3DMatrix mat_vp;
 
-					g_p_d3d_device->GetTransform(D3DTS_VIEW, &matView);
-					g_p_d3d_device->GetTransform(D3DTS_PROJECTION, &matProj);
+					g_p_d3d_device->GetTransform(D3DTS_VIEW, &mat_view);
+					g_p_d3d_device->GetTransform(D3DTS_PROJECTION, &mat_proj);
 
-					D3DXMatrixMultiply(&matVP, &matView, &matProj);
-					D3DXMatrixTranspose(&matVP, &matVP);
+					D3DXMatrixMultiply(&mat_vp, &mat_view, &mat_proj);
+					D3DXMatrixTranspose(&mat_vp, &mat_vp);
 
-					g_p_d3d_device->SetVertexShaderConstantF(16, (float*)&matVP, 4);
+					g_p_d3d_device->SetVertexShaderConstantF(16, (float*)&mat_vp, 4);
 #if 1
-					pVbFixedMap->Begin();
+					p_resource->p_vb_fixed_map->Begin();
 					{
-						float x_offset = pMainPlayer->attribute.pos.x - floorf(pMainPlayer->attribute.pos.x);
-						float y_offset = pMainPlayer->attribute.pos.y - floorf(pMainPlayer->attribute.pos.y);
+						float x_offset = p_main_player->attribute.pos.x - floorf(p_main_player->attribute.pos.x);
+						float y_offset = p_main_player->attribute.pos.y - floorf(p_main_player->attribute.pos.y);
 
-						TD3DMatrix matWorld;
-						D3DXMatrixIdentity(&matWorld);
-						D3DXMatrixTranslation(&matWorld, - pMainPlayer->attribute.pos.x, 0.0f, - pMainPlayer->attribute.pos.y);
-						g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
+						TD3DMatrix mat_world;
+						D3DXMatrixIdentity(&mat_world);
+						D3DXMatrixTranslation(&mat_world, - p_main_player->attribute.pos.x, 0.0f, - p_main_player->attribute.pos.y);
+						g_p_d3d_device->SetTransform(D3DTS_WORLD, &mat_world);
 
-						pVbFixedMap->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2*29*29);
+						p_resource->p_vb_fixed_map->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2*29*29);
 					}
-					pVbFixedMap->End();
+					p_resource->p_vb_fixed_map->End();
 #else
-					pVbTile->Begin();
+					p_resource->p_vb_tile->Begin();
 
 					// 바닥 그리기
 					{
-						float x_offset = pMainPlayer->attribute.pos.x - floorf(pMainPlayer->attribute.pos.x);
-						float y_offset = pMainPlayer->attribute.pos.y - floorf(pMainPlayer->attribute.pos.y);
+						float x_offset = p_main_player->attribute.pos.x - floorf(p_main_player->attribute.pos.x);
+						float y_offset = p_main_player->attribute.pos.y - floorf(p_main_player->attribute.pos.y);
 
 						for (int y = -MAP_RANGE; y <= MAP_RANGE; y++)
 						for (int x = -MAP_RANGE; x <= MAP_RANGE; x++)
 						{
-							int tile = m_map.GetTile(x, y);
+							int tile = p_resource->map.GetTile(x, y);
 
-							TD3DMatrix matWorld;
-							D3DXMatrixIdentity(&matWorld);
-							D3DXMatrixTranslation(&matWorld, 1.0f * x - x_offset, 0.0f, 1.0f * y - y_offset);
-							g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
+							TD3DMatrix mat_world;
+							D3DXMatrixIdentity(&mat_world);
+							D3DXMatrixTranslation(&mat_world, 1.0f * x - x_offset, 0.0f, 1.0f * y - y_offset);
+							g_p_d3d_device->SetTransform(D3DTS_WORLD, &mat_world);
 
 							{
-								D3DXMatrixMultiply(&matWV, &matWorld, &matView);
-								D3DXMatrixMultiply(&matWVP, &matWV, &matProj);
+								D3DXMatrixMultiply(&mat_wv, &mat_world, &mat_view);
+								D3DXMatrixMultiply(&mat_wvp, &mat_wv, &mat_proj);
 
-								D3DXMatrixTranspose(&matWVP, &matWVP);
-								g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
+								D3DXMatrixTranspose(&mat_wvp, &mat_wvp);
+								g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&mat_wvp, 4);
 
-								D3DXMatrixTranspose(&matWV, &matWV);
-								g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&matWV, 4);
+								D3DXMatrixTranspose(&mat_wv, &mat_wv);
+								g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&mat_wv, 4);
 
-								D3DXMatrixTranspose(&matWorld, &matWorld);
-								g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
+								D3DXMatrixTranspose(&mat_world, &mat_world);
+								g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&mat_world, 4);
 							}
 
-							pVbTile->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, tile*NUM_OF_VERTICES, 10);
-							//pVbTemp->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1);
+							p_resource->p_vb_tile->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, tile*NUM_OF_VERTICES, 10);
+							//p_resource->p_vb_temp->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1);
 						}
 					}
-					pVbTile->End();
+					p_resource->p_vb_tile->End();
 #endif
 					glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-					pVbTile->Begin();
+					p_resource->p_vb_tile->Begin();
 
 					// 기둥 그리기
 					{
 						for (int y = -MAP_RANGE; y <= MAP_RANGE; y++)
 						for (int x = -MAP_RANGE; x <= MAP_RANGE; x++)
 						{
-							int wall = m_map.GetWall(x, y);
+							int wall = p_resource->map.GetWall(x, y);
 							if (wall == 0)
 								continue;
 
-							TD3DMatrix matWorld;
-							D3DXMatrixIdentity(&matWorld);
-							D3DXMatrixTranslation(&matWorld, 1.0f * x - pMainPlayer->attribute.pos.x, 0.26f, 1.0f * y - pMainPlayer->attribute.pos.y);
-							g_p_d3d_device->SetTransform(D3DTS_WORLD, &matWorld);
+							TD3DMatrix mat_world;
+							D3DXMatrixIdentity(&mat_world);
+							D3DXMatrixTranslation(&mat_world, 1.0f * x - p_main_player->attribute.pos.x, 0.26f, 1.0f * y - p_main_player->attribute.pos.y);
+							g_p_d3d_device->SetTransform(D3DTS_WORLD, &mat_world);
 
 							{
-								D3DXMatrixMultiply(&matWV, &matWorld, &matView);
-								D3DXMatrixMultiply(&matWVP, &matWV, &matProj);
+								D3DXMatrixMultiply(&mat_wv, &mat_world, &mat_view);
+								D3DXMatrixMultiply(&mat_wvp, &mat_wv, &mat_proj);
 
-								D3DXMatrixTranspose(&matWVP, &matWVP);
-								g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&matWVP, 4);
+								D3DXMatrixTranspose(&mat_wvp, &mat_wvp);
+								g_p_d3d_device->SetVertexShaderConstantF(4, (float*)&mat_wvp, 4);
 
-								D3DXMatrixTranspose(&matWV, &matWV);
-								g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&matWV, 4);
+								D3DXMatrixTranspose(&mat_wv, &mat_wv);
+								g_p_d3d_device->SetVertexShaderConstantF(8, (float*)&mat_wv, 4);
 
-								D3DXMatrixTranspose(&matWorld, &matWorld);
-								g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&matWorld, 4);
+								D3DXMatrixTranspose(&mat_world, &mat_world);
+								g_p_d3d_device->SetVertexShaderConstantF(12, (float*)&mat_world, 4);
 							}
 
-							pVbTile->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, wall*NUM_OF_VERTICES, 10);
+							p_resource->p_vb_tile->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, wall*NUM_OF_VERTICES, 10);
 						}
 					}
-pVbTile->Flush();
-					pVbTile->End();
+					p_resource->p_vb_tile->Flush();
+					p_resource->p_vb_tile->End();
 				}
 
-				SetupMatrices();
+				s_SetupMatrices();
 			}
 
-			Test(0);
-			Test(1);
+			DisplayMainCharacter(0);
+			DisplayMainCharacter(1);
 
 			g_p_d3d_device->EndScene();
 		}
@@ -686,6 +696,7 @@ pVbTile->Flush();
 		OnDestory,
 		OnProcess
 	};
-}
+
+} // namespace game_play
 
 } // namespace erio
