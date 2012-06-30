@@ -9,7 +9,7 @@ namespace erio
 
 namespace option
 {
-	bool OnCreate(void)
+	bool OnCreate(unsigned long param)
 	{
 		return true;
 	}

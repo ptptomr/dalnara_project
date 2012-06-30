@@ -20,7 +20,7 @@ namespace erio
 		STATE_EXIT
 	};
 
-	extern void g_ChangeState(TState state);
+	extern void g_ChangeState(TState state, unsigned long param1 = 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

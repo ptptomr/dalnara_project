@@ -9,7 +9,7 @@ namespace erio
 
 namespace team_logo
 {
-	bool OnCreate(void)
+	bool OnCreate(unsigned long param)
 	{
 		return true;
 	}

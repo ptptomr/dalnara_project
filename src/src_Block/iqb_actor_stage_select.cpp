@@ -9,7 +9,7 @@ namespace erio
 
 namespace stage_select
 {
-	bool OnCreate(void)
+	bool OnCreate(unsigned long param)
 	{
 		return true;
 	}

@@ -496,7 +496,7 @@ namespace erio
 {
 	namespace game_play
 	{
-		bool OnCreate(void);
+		bool OnCreate(unsigned long param);
 		bool OnDestory(void);
 		bool OnProcess(void);
 
@@ -510,7 +510,7 @@ namespace erio
 } // namespace erio
 
 
-bool erio::game_play::OnCreate(void)
+bool erio::game_play::OnCreate(unsigned long param)
 {
 	p_resource = new TResource;
 

@@ -162,7 +162,7 @@ namespace avej_lite
 struct AppCallback
 {
 	//! Application이 생성될 때 불린다.
-	bool (*OnCreate)(void);
+	bool (*OnCreate)(unsigned long param);
 	//! Application이 종료될 때 불린다.
 	bool (*OnDestory)(void);
 	//! 게임의 메인 루프 진행을 위해 계속 불린다.
@@ -180,6 +180,7 @@ public:
 	virtual bool      Process(void) = 0;
 	static  void      ProcessMessages(void);
 	static  IAvejApp* GetInstance(const AppCallback& callBack);
+	static  IAvejApp* GetInstance(const AppCallback& callBack, unsigned long param1);
     static  int       Release(void);
 };
 

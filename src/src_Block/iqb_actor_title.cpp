@@ -30,7 +30,7 @@ namespace title
 
 	iu::shared_ptr<CTexture> sprite;
 
-	bool OnCreate(void)
+	bool OnCreate(unsigned long param)
 	{
 		gfx::SetFlatMode();
 
@@ -57,7 +57,7 @@ namespace title
 
 		if (input_device.WasKeyPressed(avej_lite::INPUT_KEY_SYS1))
 		{
-			g_ChangeState(STATE_GAME_PLAY);
+			g_ChangeState(STATE_GAME_PLAY, 0x00010001);
 			return false;
 		}
 

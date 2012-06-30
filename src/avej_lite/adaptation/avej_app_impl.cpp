@@ -35,13 +35,13 @@ void Terminate(void)
 class IAvejAppImpl: public avej_lite::IAvejApp
 {
 public:
-	IAvejAppImpl(const avej_lite::AppCallback& callback)
+	IAvejAppImpl(const avej_lite::AppCallback& callback, unsigned long param)
 		: _fn_callback(callback)
 	{
         //atexit(Terminate);
        
 		if (_fn_callback.OnCreate)
-			_fn_callback.OnCreate();
+			_fn_callback.OnCreate(param);
 	}
 	~IAvejAppImpl(void)
 	{
@@ -78,6 +78,7 @@ public:
 	static avej_lite::IAvejApp* p_app_impl;
 	static int                  ref_count;
 	static avej_lite::IAvejApp* GetInstance(const avej_lite::AppCallback& fn_callback);
+	static avej_lite::IAvejApp* GetInstance(const avej_lite::AppCallback& fn_callback, unsigned long param1);
 	static int                  Release(void);
 
 protected:
@@ -91,9 +92,14 @@ int                  IAvejAppImpl::ref_count  = 0;
 
 avej_lite::IAvejApp* IAvejAppImpl::GetInstance(const avej_lite::AppCallback& fn_callback)
 {
+	return GetInstance(fn_callback, 0);
+}
+
+avej_lite::IAvejApp* IAvejAppImpl::GetInstance(const avej_lite::AppCallback& fn_callback, unsigned long param1)
+{
 	if (p_app_impl == 0)
 	{
-    	p_app_impl = new IAvejAppImpl(fn_callback);
+    	p_app_impl = new IAvejAppImpl(fn_callback, param1);
 	}
 
 	++ref_count;
@@ -117,6 +123,11 @@ int IAvejAppImpl::Release(void)
 avej_lite::IAvejApp* avej_lite::IAvejApp::GetInstance(const avej_lite::AppCallback& fn_callback)
 {
 	return IAvejAppImpl::GetInstance(fn_callback);
+}
+
+avej_lite::IAvejApp* avej_lite::IAvejApp::GetInstance(const avej_lite::AppCallback& fn_callback, unsigned long param1)
+{
+	return IAvejAppImpl::GetInstance(fn_callback, param1);
 }
 
 int avej_lite::IAvejApp::Release(void)

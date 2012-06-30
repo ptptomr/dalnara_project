@@ -51,8 +51,9 @@ namespace erio
 
 	namespace
 	{
-		bool   s_state_changing = false;
-		TState s_required_state = STATE_EXIT;
+		bool          s_state_changing = false;
+		TState        s_required_state = STATE_EXIT;
+		unsigned long s_state_param1 = 0;
 
 		const AppCallback* s_app_callback_list[STATE_EXIT+1] =
 		{
@@ -73,9 +74,10 @@ namespace erio
 		};
 	}
 
-	void g_ChangeState(TState state)
+	void g_ChangeState(TState state, unsigned long param1)
 	{
 		s_required_state = state;
+		s_state_param1 = param1;
 		s_state_changing = true;
 	}
 
@@ -136,7 +138,7 @@ namespace erio
 					s_ClearKeyBuffer();
 
 					assert(m_p_app == 0);
-					m_p_app = IAvejApp::GetInstance(*s_app_callback_list[m_current_state]);
+					m_p_app = IAvejApp::GetInstance(*s_app_callback_list[m_current_state], ::erio::s_state_param1);
 					assert(m_p_app);
 
 					m_process = PROCESS_IN;
