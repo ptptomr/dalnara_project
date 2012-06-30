@@ -220,7 +220,7 @@ namespace
 		avej_lite::util::SetResourcePath("../../Res/res_Block");
 	#endif
 
-		p_system = new CSystem(STATE_TITLE);
+		p_system = new CSystem(STATE_TEAM_LOGO);
 
 		return (p_system != 0);
 	}
