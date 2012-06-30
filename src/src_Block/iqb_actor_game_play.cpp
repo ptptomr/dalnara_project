@@ -225,13 +225,7 @@ namespace
 		iu::shared_ptr<CTexture> sprite;
 		std::map<EVertexFormat, TShaderSet> shader_set;
 	};
-}
 
-namespace erio
-{
-
-namespace game_play
-{
 	const int NUM_OF_VERTICES = 14;
 
 	TResource* p_resource = 0;
@@ -318,245 +312,53 @@ namespace game_play
 		}
 	}
 
-	bool OnCreate(void)
+	void ProcessObjects(const CInputDevice& input_device)
 	{
-		p_resource = new TResource;
+		const float MOVE = 0.075f;
+		float dx = 0.0f; 
+		float dy = 0.0f; 
 
-		p_resource->p_d3d_attrib = new CSm3DAttrib(g_p_d3d_device, 800.0f / 480.0f);
+		if (input_device.IsKeyHeldDown(avej_lite::INPUT_KEY_LEFT))
+			dx = -MOVE;
+		if (input_device.IsKeyHeldDown(avej_lite::INPUT_KEY_RIGHT))
+			dx = +MOVE;
+		if (input_device.IsKeyHeldDown(avej_lite::INPUT_KEY_UP))
+			dy = +MOVE;
+		if (input_device.IsKeyHeldDown(avej_lite::INPUT_KEY_DOWN))
+			dy = -MOVE;
 
-		p_resource->player_list.push_back(CreateCharacter(0, 0.0f, 0.0f));
-		p_resource->player_list.push_back(CreateCharacter(1, 2.0f, -4.0f));
-
-		p_resource->sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "NewNeto1_512_256.tga"));
-
-		if (p_resource->sprite->m_p_texture == 0)
+		if ((dx != 0.0f) || (dy != 0.0f))
 		{
-			p_resource->sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "res_Block/NewNeto1_512_256.tga"));
-		}
+			const float RADIUS = 0.4f;
 
-		/*
-			>> way to extract 'IGfxSurface' from 'CTexture'
-			avej_lite::IGfxSurface* p_res_sprite = p_resource->sprite->m_p_texture->m_p_surface;
-		*/
+			float x_center  = GetMainPlayer()->attribute.pos.x + dx + 0.5f;
+			float y_center  = GetMainPlayer()->attribute.pos.y + dy + 0.5f;
 
-		const int MAX_FACE_INC = 8;
-		{
-			struct TFRect
+			bool  walkable = p_resource->map.IsMoveableMapRect(x_center, y_center, RADIUS);
+
+			if (walkable)
 			{
-				float x1, y1, x2, y2;
-			};
-
-			const TFRect src_rect[MAX_FACE_INC] =
-			{
-				// ^
-				{261.0f / 512.0f,  59.0f / 256.0f, 298.0f / 512.0f, 116.0f / 256.0f},
-				{299.0f / 512.0f,  59.0f / 256.0f, 336.0f / 512.0f, 116.0f / 256.0f},
-				// _
-				{298.0f / 512.0f,  59.0f / 256.0f, 261.0f / 512.0f, 116.0f / 256.0f},
-				{336.0f / 512.0f,  59.0f / 256.0f, 299.0f / 512.0f, 116.0f / 256.0f},
-				// ->
-				{298.0f / 512.0f,   1.0f / 256.0f, 261.0f / 512.0f,  58.0f / 256.0f},
-				{336.0f / 512.0f,   1.0f / 256.0f, 299.0f / 512.0f,  58.0f / 256.0f},
-				// <-
-				{261.0f / 512.0f,   1.0f / 256.0f, 298.0f / 512.0f,  58.0f / 256.0f},
-				{299.0f / 512.0f,   1.0f / 256.0f, 336.0f / 512.0f,  58.0f / 256.0f},
-			};
-
-			TVertexBuffer<VERTEXFORMAT_POS_TEX>::TVertexData vertices[MAX_FACE_INC][4];
-
-			for (int i = 0; i < MAX_FACE_INC; i++)
-			{
-				vertices[i][0].position = D3DVECTOR3(-0.5f, 1.0f, 0.0f);
-				vertices[i][0].tex_pos.x = src_rect[i].x1;
-				vertices[i][0].tex_pos.y = src_rect[i].y1;
-				vertices[i][1].position = D3DVECTOR3( 0.5f, 1.0f, 0.0f);
-				vertices[i][1].tex_pos.x = src_rect[i].x2;
-				vertices[i][1].tex_pos.y = src_rect[i].y1;
-				vertices[i][2].position = D3DVECTOR3(vertices[i][0].position.x, 0.0f, vertices[i][0].position.z);
-				vertices[i][2].tex_pos.x = src_rect[i].x1;
-				vertices[i][2].tex_pos.y = src_rect[i].y2;
-				vertices[i][3].position = D3DVECTOR3(vertices[i][1].position.x, 0.0f, vertices[i][1].position.z);
-				vertices[i][3].tex_pos.x = src_rect[i].x2;
-				vertices[i][3].tex_pos.y = src_rect[i].y2;
+				GetMainPlayer()->Move(dx, dy);
 			}
-
-			p_resource->p_vb_character = new TVertexBuffer<VERTEXFORMAT_POS_TEX>(g_p_d3d_device, &vertices[0][0], MAX_FACE_INC, 4, p_resource->sprite);
-			p_resource->p_vb_character->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_TEX]);
-		}
-
-		{
-			TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData vertices[7][NUM_OF_VERTICES];
-
-			s_ConvertIsometricToVertice(vertices[0], NUM_OF_VERTICES, TBounds( 66.0f, 105.0f, 130.0f, 138.0f), p_resource->sprite.get()->m_p_texture);
-			s_ConvertIsometricToVertice(vertices[1], NUM_OF_VERTICES, TBounds( 66.0f, 139.0f, 130.0f, 174.0f), p_resource->sprite.get()->m_p_texture);
-			s_ConvertIsometricToVertice(vertices[2], NUM_OF_VERTICES, TBounds( 66.0f,   1.0f, 130.0f, 104.0f), p_resource->sprite.get()->m_p_texture);
-			s_ConvertIsometricToVertice(vertices[3], NUM_OF_VERTICES, TBounds(131.0f,   1.0f, 195.0f, 104.0f), p_resource->sprite.get()->m_p_texture);
-			s_ConvertIsometricToVertice(vertices[4], NUM_OF_VERTICES, TBounds(199.0f,   1.0f, 257.0f,  57.0f), p_resource->sprite.get()->m_p_texture);
-			s_ConvertIsometricToVertice(vertices[5], NUM_OF_VERTICES, TBounds(199.0f,  58.0f, 257.0f, 111.0f), p_resource->sprite.get()->m_p_texture);
-
-			short indice[10][3] =
+			else
 			{
-				{ 1, 0, 2}, { 2, 0, 3},
-				{ 4, 5, 6}, { 6, 5, 7},
-				{ 6, 7, 8}, { 8, 7, 9},
-				{ 8, 9,10}, {10, 9,11},
-				{10,11,12}, {12,11,13},
-			};
-			
-			p_resource->p_vb_tile = new TVertexIndexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices[0][0], 7, NUM_OF_VERTICES, &indice[0][0], 30, p_resource->sprite);
-			p_resource->p_vb_tile->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_NOR_TEX]);
-
-			{
-				const int RADIUS_WIDTH  = 14;
-				const int RADIUS_HEIGHT = 14;
-				TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData vertices_fm[2*RADIUS_WIDTH+1][2*RADIUS_HEIGHT+1][2*3];
-
-				for (int y = -RADIUS_HEIGHT; y <= RADIUS_HEIGHT; y++)
-				for (int x = -RADIUS_WIDTH; x <= RADIUS_WIDTH; x++)
+				walkable = p_resource->map.IsMoveableMapRect(x_center, GetMainPlayer()->attribute.pos.y + 0.5f, RADIUS);
+				if (walkable && (dx != 0.0f))
 				{
-					float x_base = 1.0f * x;
-					float y_base = 1.0f * y;
-
-					TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData* p_vertext_data = &vertices_fm[x+RADIUS_WIDTH][y+RADIUS_HEIGHT][0];
-
-					for (int i = 0; i < 2; i++)
-					{
-						int tile = p_resource->map.GetTile(x, y);
-
-						p_vertext_data[3*i+0] = vertices[tile][indice[i][0]];
-						p_vertext_data[3*i+1] = vertices[tile][indice[i][1]];
-						p_vertext_data[3*i+2] = vertices[tile][indice[i][2]];
-
-						p_vertext_data[3*i+0].position.x += x_base;
-						p_vertext_data[3*i+0].position.z += y_base;
-						p_vertext_data[3*i+1].position.x += x_base;
-						p_vertext_data[3*i+1].position.z += y_base;
-						p_vertext_data[3*i+2].position.x += x_base;
-						p_vertext_data[3*i+2].position.z += y_base;
-					}
-				}
-
-				p_resource->p_vb_fixed_map = new TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices_fm[0][0][0], (2*RADIUS_WIDTH+1) * (2*RADIUS_HEIGHT+1), 2*3, p_resource->sprite);
-				p_resource->p_vb_fixed_map->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_NOR_TEX]);
-			}
-		}
-
-		{
-			TVertexBuffer<VERTEXFORMAT_POS_DIF>::TVertexData vertices[2][3] =
-			{
-				{
-					{ D3DVECTOR3(0.0f, 0.0f, 0.0f), { 1.0f, 0.0f, 0.0f, 1.0f } },
-					{ D3DVECTOR3(0.0f, 0.0f, 1.0f), { 0.0f, 1.0f, 0.0f, 1.0f } },
-					{ D3DVECTOR3(1.0f, 0.0f, 0.0f), { 0.0f, 0.0f, 1.0f, 1.0f } }
-				},
-				{
-					{ D3DVECTOR3(1.0f, 0.0f, 0.0f), { 0.0f, 0.0f, 1.0f, 1.0f } },
-					{ D3DVECTOR3(0.0f, 0.0f, 1.0f), { 0.0f, 1.0f, 0.0f, 1.0f } },
-					{ D3DVECTOR3(1.0f, 0.0f, 1.0f), { 1.0f, 1.0f, 0.0f, 1.0f } }
-				}
-			};
-
-			p_resource->p_vb_temp = new TVertexBuffer<VERTEXFORMAT_POS_DIF>(g_p_d3d_device, &vertices[0][0], 2, 3, p_resource->sprite);
-			p_resource->p_vb_temp->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_DIF]);
-		}
-
-#if 1
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CW);
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-
-		glEnable(GL_COLOR_MATERIAL);
-
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glEnable(GL_ALPHA_TEST);
-		glAlphaFuncx(GL_GREATER, GLclampx(0));
-#else
-		g_p_d3d_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-		g_p_d3d_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-		g_p_d3d_device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-
-		g_p_d3d_device->SetRenderState(D3DRS_ALPHATESTENABLE, 1);
-		g_p_d3d_device->SetRenderState(D3DRS_ALPHAREF, 0x00);
-		g_p_d3d_device->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-
-		g_p_d3d_device->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0);
-		g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG1,     D3DTA_TEXTURE);
-		g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2,     D3DTA_DIFFUSE);
-		g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLOROP,       D3DTOP_MODULATE);
-		g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG1,     D3DTA_TEXTURE);
-		g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2,     D3DTA_DIFFUSE);
-		g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP,       D3DTOP_MODULATE);
-#endif
-
-		return true;
-	}
-
-	bool OnDestory(void)
-	{
-		delete p_resource;
-
-		return true;
-	}
-
-	bool OnProcess(void)
-	{
-		CInputDevice& input_device = avej_lite::singleton<CInputDevice>::get();
-		input_device.UpdateInputState();
-
-		if (input_device.WasKeyPressed(avej_lite::INPUT_KEY_SYS1))
-		{
-			g_ChangeState(STATE_EXIT);
-			return false;
-		}
-
-		{
-			const float MOVE = 0.075f;
-			float dx = 0.0f; 
-			float dy = 0.0f; 
-
-			if (input_device.IsKeyHeldDown(avej_lite::INPUT_KEY_LEFT))
-				dx = -MOVE;
-			if (input_device.IsKeyHeldDown(avej_lite::INPUT_KEY_RIGHT))
-				dx = +MOVE;
-			if (input_device.IsKeyHeldDown(avej_lite::INPUT_KEY_UP))
-				dy = +MOVE;
-			if (input_device.IsKeyHeldDown(avej_lite::INPUT_KEY_DOWN))
-				dy = -MOVE;
-
-			if ((dx != 0.0f) || (dy != 0.0f))
-			{
-				const float RADIUS = 0.4f;
-
-				float x_center  = GetMainPlayer()->attribute.pos.x + dx + 0.5f;
-				float y_center  = GetMainPlayer()->attribute.pos.y + dy + 0.5f;
-
-				bool  walkable = p_resource->map.IsMoveableMapRect(x_center, y_center, RADIUS);
-
-				if (walkable)
-				{
-					GetMainPlayer()->Move(dx, dy);
+					GetMainPlayer()->Move(dx, 0.0f);
 				}
 				else
 				{
-					walkable = p_resource->map.IsMoveableMapRect(x_center, GetMainPlayer()->attribute.pos.y + 0.5f, RADIUS);
-					if (walkable && (dx != 0.0f))
-					{
-						GetMainPlayer()->Move(dx, 0.0f);
-					}
-					else
-					{
-						walkable = p_resource->map.IsMoveableMapRect(GetMainPlayer()->attribute.pos.x + 0.5f, y_center, RADIUS);
-						if (walkable && (dy != 0.0f))
-							GetMainPlayer()->Move(0.0f, dy);
-					}
+					walkable = p_resource->map.IsMoveableMapRect(GetMainPlayer()->attribute.pos.x + 0.5f, y_center, RADIUS);
+					if (walkable && (dy != 0.0f))
+						GetMainPlayer()->Move(0.0f, dy);
 				}
 			}
 		}
+	}
 
+	void DisplayObjects(void)
+	{
 		p_resource->p_d3d_attrib->Process();
 
 		g_p_d3d_device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
@@ -686,17 +488,226 @@ namespace game_play
 		}
 
 		g_p_d3d_device->Present(NULL, NULL, 0, NULL);
-
-		return true;
 	}
 
-	AppCallback callback =
+} // namespace
+
+namespace erio
+{
+	namespace game_play
 	{
-		OnCreate,
-		OnDestory,
-		OnProcess
-	};
+		bool OnCreate(void);
+		bool OnDestory(void);
+		bool OnProcess(void);
 
-} // namespace game_play
-
+		AppCallback callback =
+		{
+			OnCreate,
+			OnDestory,
+			OnProcess
+		};
+	} // namespace game_play
 } // namespace erio
+
+
+bool erio::game_play::OnCreate(void)
+{
+	p_resource = new TResource;
+
+	p_resource->p_d3d_attrib = new CSm3DAttrib(g_p_d3d_device, 800.0f / 480.0f);
+
+	p_resource->player_list.push_back(CreateCharacter(0, 0.0f, 0.0f));
+	p_resource->player_list.push_back(CreateCharacter(1, 2.0f, -4.0f));
+
+	p_resource->sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "NewNeto1_512_256.tga"));
+
+	if (p_resource->sprite->m_p_texture == 0)
+	{
+		p_resource->sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "res_Block/NewNeto1_512_256.tga"));
+	}
+
+	/*
+		>> way to extract 'IGfxSurface' from 'CTexture'
+		avej_lite::IGfxSurface* p_res_sprite = p_resource->sprite->m_p_texture->m_p_surface;
+	*/
+
+	const int MAX_FACE_INC = 8;
+	{
+		struct TFRect
+		{
+			float x1, y1, x2, y2;
+		};
+
+		const TFRect src_rect[MAX_FACE_INC] =
+		{
+			// ^
+			{261.0f / 512.0f,  59.0f / 256.0f, 298.0f / 512.0f, 116.0f / 256.0f},
+			{299.0f / 512.0f,  59.0f / 256.0f, 336.0f / 512.0f, 116.0f / 256.0f},
+			// _
+			{298.0f / 512.0f,  59.0f / 256.0f, 261.0f / 512.0f, 116.0f / 256.0f},
+			{336.0f / 512.0f,  59.0f / 256.0f, 299.0f / 512.0f, 116.0f / 256.0f},
+			// ->
+			{298.0f / 512.0f,   1.0f / 256.0f, 261.0f / 512.0f,  58.0f / 256.0f},
+			{336.0f / 512.0f,   1.0f / 256.0f, 299.0f / 512.0f,  58.0f / 256.0f},
+			// <-
+			{261.0f / 512.0f,   1.0f / 256.0f, 298.0f / 512.0f,  58.0f / 256.0f},
+			{299.0f / 512.0f,   1.0f / 256.0f, 336.0f / 512.0f,  58.0f / 256.0f},
+		};
+
+		TVertexBuffer<VERTEXFORMAT_POS_TEX>::TVertexData vertices[MAX_FACE_INC][4];
+
+		for (int i = 0; i < MAX_FACE_INC; i++)
+		{
+			vertices[i][0].position = D3DVECTOR3(-0.5f, 1.0f, 0.0f);
+			vertices[i][0].tex_pos.x = src_rect[i].x1;
+			vertices[i][0].tex_pos.y = src_rect[i].y1;
+			vertices[i][1].position = D3DVECTOR3( 0.5f, 1.0f, 0.0f);
+			vertices[i][1].tex_pos.x = src_rect[i].x2;
+			vertices[i][1].tex_pos.y = src_rect[i].y1;
+			vertices[i][2].position = D3DVECTOR3(vertices[i][0].position.x, 0.0f, vertices[i][0].position.z);
+			vertices[i][2].tex_pos.x = src_rect[i].x1;
+			vertices[i][2].tex_pos.y = src_rect[i].y2;
+			vertices[i][3].position = D3DVECTOR3(vertices[i][1].position.x, 0.0f, vertices[i][1].position.z);
+			vertices[i][3].tex_pos.x = src_rect[i].x2;
+			vertices[i][3].tex_pos.y = src_rect[i].y2;
+		}
+
+		p_resource->p_vb_character = new TVertexBuffer<VERTEXFORMAT_POS_TEX>(g_p_d3d_device, &vertices[0][0], MAX_FACE_INC, 4, p_resource->sprite);
+		p_resource->p_vb_character->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_TEX]);
+	}
+
+	{
+		TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData vertices[7][NUM_OF_VERTICES];
+
+		s_ConvertIsometricToVertice(vertices[0], NUM_OF_VERTICES, TBounds( 66.0f, 105.0f, 130.0f, 138.0f), p_resource->sprite.get()->m_p_texture);
+		s_ConvertIsometricToVertice(vertices[1], NUM_OF_VERTICES, TBounds( 66.0f, 139.0f, 130.0f, 174.0f), p_resource->sprite.get()->m_p_texture);
+		s_ConvertIsometricToVertice(vertices[2], NUM_OF_VERTICES, TBounds( 66.0f,   1.0f, 130.0f, 104.0f), p_resource->sprite.get()->m_p_texture);
+		s_ConvertIsometricToVertice(vertices[3], NUM_OF_VERTICES, TBounds(131.0f,   1.0f, 195.0f, 104.0f), p_resource->sprite.get()->m_p_texture);
+		s_ConvertIsometricToVertice(vertices[4], NUM_OF_VERTICES, TBounds(199.0f,   1.0f, 257.0f,  57.0f), p_resource->sprite.get()->m_p_texture);
+		s_ConvertIsometricToVertice(vertices[5], NUM_OF_VERTICES, TBounds(199.0f,  58.0f, 257.0f, 111.0f), p_resource->sprite.get()->m_p_texture);
+
+		short indice[10][3] =
+		{
+			{ 1, 0, 2}, { 2, 0, 3},
+			{ 4, 5, 6}, { 6, 5, 7},
+			{ 6, 7, 8}, { 8, 7, 9},
+			{ 8, 9,10}, {10, 9,11},
+			{10,11,12}, {12,11,13},
+		};
+		
+		p_resource->p_vb_tile = new TVertexIndexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices[0][0], 7, NUM_OF_VERTICES, &indice[0][0], 30, p_resource->sprite);
+		p_resource->p_vb_tile->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_NOR_TEX]);
+
+		{
+			const int RADIUS_WIDTH  = 14;
+			const int RADIUS_HEIGHT = 14;
+			TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData vertices_fm[2*RADIUS_WIDTH+1][2*RADIUS_HEIGHT+1][2*3];
+
+			for (int y = -RADIUS_HEIGHT; y <= RADIUS_HEIGHT; y++)
+			for (int x = -RADIUS_WIDTH; x <= RADIUS_WIDTH; x++)
+			{
+				float x_base = 1.0f * x;
+				float y_base = 1.0f * y;
+
+				TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>::TVertexData* p_vertext_data = &vertices_fm[x+RADIUS_WIDTH][y+RADIUS_HEIGHT][0];
+
+				for (int i = 0; i < 2; i++)
+				{
+					int tile = p_resource->map.GetTile(x, y);
+
+					p_vertext_data[3*i+0] = vertices[tile][indice[i][0]];
+					p_vertext_data[3*i+1] = vertices[tile][indice[i][1]];
+					p_vertext_data[3*i+2] = vertices[tile][indice[i][2]];
+
+					p_vertext_data[3*i+0].position.x += x_base;
+					p_vertext_data[3*i+0].position.z += y_base;
+					p_vertext_data[3*i+1].position.x += x_base;
+					p_vertext_data[3*i+1].position.z += y_base;
+					p_vertext_data[3*i+2].position.x += x_base;
+					p_vertext_data[3*i+2].position.z += y_base;
+				}
+			}
+
+			p_resource->p_vb_fixed_map = new TVertexBuffer<VERTEXFORMAT_POS_NOR_TEX>(g_p_d3d_device, &vertices_fm[0][0][0], (2*RADIUS_WIDTH+1) * (2*RADIUS_HEIGHT+1), 2*3, p_resource->sprite);
+			p_resource->p_vb_fixed_map->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_NOR_TEX]);
+		}
+	}
+
+	{
+		TVertexBuffer<VERTEXFORMAT_POS_DIF>::TVertexData vertices[2][3] =
+		{
+			{
+				{ D3DVECTOR3(0.0f, 0.0f, 0.0f), { 1.0f, 0.0f, 0.0f, 1.0f } },
+				{ D3DVECTOR3(0.0f, 0.0f, 1.0f), { 0.0f, 1.0f, 0.0f, 1.0f } },
+				{ D3DVECTOR3(1.0f, 0.0f, 0.0f), { 0.0f, 0.0f, 1.0f, 1.0f } }
+			},
+			{
+				{ D3DVECTOR3(1.0f, 0.0f, 0.0f), { 0.0f, 0.0f, 1.0f, 1.0f } },
+				{ D3DVECTOR3(0.0f, 0.0f, 1.0f), { 0.0f, 1.0f, 0.0f, 1.0f } },
+				{ D3DVECTOR3(1.0f, 0.0f, 1.0f), { 1.0f, 1.0f, 0.0f, 1.0f } }
+			}
+		};
+
+		p_resource->p_vb_temp = new TVertexBuffer<VERTEXFORMAT_POS_DIF>(g_p_d3d_device, &vertices[0][0], 2, 3, p_resource->sprite);
+		p_resource->p_vb_temp->SetShader(p_resource->shader_set[VERTEXFORMAT_POS_DIF]);
+	}
+
+#if 1
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CW);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glEnable(GL_COLOR_MATERIAL);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFuncx(GL_GREATER, GLclampx(0));
+#else
+	g_p_d3d_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	g_p_d3d_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	g_p_d3d_device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+
+	g_p_d3d_device->SetRenderState(D3DRS_ALPHATESTENABLE, 1);
+	g_p_d3d_device->SetRenderState(D3DRS_ALPHAREF, 0x00);
+	g_p_d3d_device->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+
+	g_p_d3d_device->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0);
+	g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG1,     D3DTA_TEXTURE);
+	g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2,     D3DTA_DIFFUSE);
+	g_p_d3d_device->SetTextureStageState(0, D3DTSS_COLOROP,       D3DTOP_MODULATE);
+	g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG1,     D3DTA_TEXTURE);
+	g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2,     D3DTA_DIFFUSE);
+	g_p_d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP,       D3DTOP_MODULATE);
+#endif
+
+	return true;
+}
+
+bool erio::game_play::OnDestory(void)
+{
+	delete p_resource;
+
+	return true;
+}
+
+bool erio::game_play::OnProcess(void)
+{
+	CInputDevice& input_device = avej_lite::singleton<CInputDevice>::get();
+	input_device.UpdateInputState();
+
+	if (input_device.WasKeyPressed(avej_lite::INPUT_KEY_SYS1))
+	{
+		g_ChangeState(STATE_EXIT);
+		return false;
+	}
+
+	ProcessObjects(input_device);
+
+	DisplayObjects();
+
+	return true;
+}
