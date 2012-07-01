@@ -2,7 +2,6 @@
 #ifndef __IQB_CLASS_3D_VERTEX_H__
 #define __IQB_CLASS_3D_VERTEX_H__
 
-#include "iqb_base_type.h"
 #include "iqb_class_3d.h"
 #include "iqb_class_3d_texture.h"
 #include "iqb_class_3d_shader.h"

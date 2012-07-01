@@ -2,7 +2,6 @@
 #ifndef __IQB_CLASS_3D_ATTRIB_H__
 #define __IQB_CLASS_3D_ATTRIB_H__
 
-#include "iqb_base_type.h"
 #include "iqb_class_3d.h"
 #include "iqb_class_3d_camera.h"
 #include "iqb_class_3d_projection.h"
@@ -11,13 +10,13 @@
 
 namespace erio
 {
-	class CSm3DAttrib: public ISmActor
+	class CSm3DAttrib: public I3dActor
 	{
 	public:
 		CSm3DAttrib(IDirect3DDevice9* p_d3d_device, float screen_ratio);
 		~CSm3DAttrib(void);
 
-		unsigned long Process(long ref_time = 0, ISmActor* p_sender = 0);
+		unsigned long Process(long ref_time = 0, I3dActor* p_sender = 0);
 
 		inline CSm3DCamera* GetCamera(void) const
 		{

@@ -2,12 +2,11 @@
 #ifndef __IQB_CLASS_3D_PROJECTION_H__
 #define __IQB_CLASS_3D_PROJECTION_H__
 
-#include "iqb_base_type.h"
 #include "iqb_class_3d.h"
 
 namespace erio
 {
-	class CSm3DProjection: public ISmActor
+	class CSm3DProjection: public I3dActor
 	{
 	public:
 		enum
@@ -24,7 +23,7 @@ namespace erio
 	public:
 		CSm3DProjection(IDirect3DDevice9* p_d3d_device, float screen_ratio);
 
-		unsigned long Process(long ref_time = 0, ISmActor* p_sender = 0);
+		unsigned long Process(long ref_time = 0, I3dActor* p_sender = 0);
 
 		TProjectionMode GetMode(void)
 		{

@@ -31,7 +31,7 @@ erio::CSm3DLight::CSm3DLight(IDirect3DDevice9* p_d3d_device)
 	m_Apply();
 }
 
-unsigned long erio::CSm3DLight::Process(long ref_time, ISmActor* p_sender)
+unsigned long erio::CSm3DLight::Process(long ref_time, I3dActor* p_sender)
 {
 	return 0;
 }

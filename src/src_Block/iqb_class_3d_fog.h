@@ -2,7 +2,6 @@
 #ifndef __IQB_CLASS_3D_FOG_H__
 #define __IQB_CLASS_3D_FOG_H__
 
-#include "iqb_base_type.h"
 #include "iqb_class_3d.h"
 
 namespace erio
@@ -10,12 +9,12 @@ namespace erio
 	const float FOG_START = 18.0f * 1.0f;
 	const float FOG_END   = 30.0f * 1.0f;
 
-	class CSm3DFog: public ISmActor
+	class CSm3DFog: public I3dActor
 	{
 	public:
 		CSm3DFog(IDirect3DDevice9* p_d3d_device);
 
-		unsigned long Process(long ref_time = 0, ISmActor* p_sender = 0);
+		unsigned long Process(long ref_time = 0, I3dActor* p_sender = 0);
 
 	private:
 		IDirect3DDevice9* m_p_d3d_device;

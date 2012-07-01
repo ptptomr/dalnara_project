@@ -4,8 +4,6 @@
 
 namespace erio
 {
-	typedef float single;
-
 	struct TSmPoint
 	{
 		long x;

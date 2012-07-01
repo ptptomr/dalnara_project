@@ -2,7 +2,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // uses
 
-#include "iqb_z_config.h"
 #include "iqb_base_gfx.h"
 #include "iqb_class_3d.h"
 #include "iqb_class_3d_vertext.h"

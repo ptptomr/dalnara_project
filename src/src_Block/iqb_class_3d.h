@@ -556,4 +556,19 @@ void D3DXDeclaratorFromFVF(DWORD fvf, D3DVERTEXELEMENT9* p_out_declaration);
 
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace erio
+{
+	typedef float single;
+
+	class I3dActor
+	{
+	public:
+		virtual ~I3dActor()
+		{
+		}
+
+		virtual unsigned long Process(long ref_time = 0, I3dActor* p_sender = 0) = 0;
+	};
+}
+
 #endif // #ifndef __IQB_CLASS_3D_H__
