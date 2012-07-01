@@ -351,6 +351,8 @@ void  CGfxSurfaceImplBackBuffer::m_Flush(unsigned long layer)
 			}
 
 			glEnable(GL_TEXTURE_2D);
+
+			//?? It's a bug. The texture id is modified by the specified texture parameter.
 			glBindTexture(GL_TEXTURE_2D, 1);
 
 			glDrawElements(GL_TRIANGLES, num_of_index*6, GL_UNSIGNED_SHORT, p_index_buffer);
