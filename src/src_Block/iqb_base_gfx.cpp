@@ -4,6 +4,10 @@
 
 using namespace avej_lite;
 
+#ifdef DrawText
+#undef DrawText
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // global variable
 
@@ -96,4 +100,9 @@ void erio::gfx::BlendBlt(int x_dest, int y_dest, IGfxSurface* p_surface, int x_s
 			g_p_back_buffer->BitBlt(_ToF16(x_dest), _ToF16(y_dest), p_surface, _ToF16(x_sour), _ToF16(y_sour), _ToF16(w_sour), _ToF16(h_sour), color_list);
 		}
 	}
+}
+
+void erio::gfx::DrawText(int x, int y, const char* string)
+{
+	
 }

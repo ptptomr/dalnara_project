@@ -4,6 +4,8 @@
 
 #include "iqb_class_3d_texture.h"
 
+#include "FontData.h"
+
 using namespace avej_lite;
 
 namespace erio
@@ -58,6 +60,21 @@ namespace team_logo
 
 			g_p_gfx_device->BeginDraw();
 			gfx::BlendBlt(800/2 - 256/2, 480/2 - 256/2, sprite->m_p_texture->m_p_surface, 0, 0, 256, 256, alpha_constant);
+			
+			// test
+			int pitch = 256 * 3;
+			int charHeight = 32;
+			int idxOffset = pitch * (charHeight * 2);
+			for (int y = 0; y < 32; y++)
+			{
+				for (int x = 0; x < 32; x++)
+				{					
+					unsigned int color = (FontData[idxOffset + y*pitch + x*3]) | (FontData[idxOffset + y*pitch + (x*3+1)] << 8) | (FontData[idxOffset + y*pitch +(x*3+2)] << 16);
+					unsigned int finalColor = 0xFF << 24 | color;
+					gfx::FillRect(finalColor, x, 32 - y, 1, 1);				
+				}
+			}
+
 			g_p_gfx_device->EndDraw();
 			g_p_gfx_device->Flip();
 
