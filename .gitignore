@@ -1,0 +1,7 @@
+Debug/
+*.ncb
+*.suo
+*.user
+src/bin/*.exe
+src/bin/*.ilk
+src/bin/*.cfg

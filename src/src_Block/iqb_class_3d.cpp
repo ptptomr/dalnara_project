@@ -69,7 +69,7 @@ _HRESULT IDirect3DDevice9::BeginScene(void)
 {
 	assert(m_p_gfx_device);
 
-	m_p_gfx_device->BeginDraw();
+	m_p_gfx_device->BeginDraw(false);
 
 	return 0;
 }
@@ -100,6 +100,14 @@ void IDirect3DDevice9::Clear(DWORD Count, const D3DRECT* pRects, DWORD Flags, D3
 	ConvertColor(Color, clear_color);
 
 	glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
+
+	GLbitfield gl_clear_flag = 0;
+
+	gl_clear_flag |= (Flags & D3DCLEAR_TARGET) ? GL_COLOR_BUFFER_BIT : 0;
+	gl_clear_flag |= (Flags & D3DCLEAR_ZBUFFER) ? GL_DEPTH_BUFFER_BIT : 0;
+	gl_clear_flag |= (Flags & D3DCLEAR_STENCIL) ? GL_STENCIL_BUFFER_BIT : 0;
+
+	glClear(gl_clear_flag);
 }
 
 void IDirect3DDevice9::SetTexture(DWORD stage, IDirect3DTexture9* p_texture)

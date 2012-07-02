@@ -23,6 +23,8 @@ erio::CSm3DAttrib::~CSm3DAttrib(void)
 
 unsigned long erio::CSm3DAttrib::Process(long ref_time, I3dActor* p_sender)
 {
+	m_fog->Process(ref_time, p_sender);
+	m_light->Process(ref_time, p_sender);
 	m_camera->Process(ref_time, p_sender);
 	m_projection->Process(ref_time, p_sender);
 

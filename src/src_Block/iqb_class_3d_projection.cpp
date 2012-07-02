@@ -90,8 +90,7 @@ erio::CSm3DProjection::CSm3DProjection(IDirect3DDevice9* p_d3d_device, float scr
 
 unsigned long erio::CSm3DProjection::Process(long ref_time, I3dActor* p_sender)
 {
-	if (m_projection_step > 0)
-		m_Apply();
+	m_Apply(); // if (m_projection_step > 0)
 
 	return 0;
 }
