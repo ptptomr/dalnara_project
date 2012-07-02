@@ -19,6 +19,74 @@ namespace erio
 	extern IDirect3DDevice9* g_p_d3d_device;
 }
 
+// temporary position
+namespace
+{
+	struct TOldMapData
+	{
+		enum { NUM_STAGE = 15 };
+		enum { NAME_STRING_SIZE = 22 };
+		enum { NAME_MAP_SIZE = 17 };
+		struct
+		{
+			char* sz_name[NAME_STRING_SIZE];
+			unsigned char map[NAME_MAP_SIZE][NAME_MAP_SIZE];
+		} map_data[NUM_STAGE];
+	};
+
+	class COldMapData: public TOldMapData
+	{
+	public:
+		COldMapData(const util::string& file_name)
+		{
+			util::CFileReadStream read_stream(file_name);
+
+			// 4665
+			// = NUM_STAGE * 311
+			// = NUM_STAGE * (NAME_STRING_SIZE + 289)
+			// = NUM_STAGE * (NAME_STRING_SIZE + (NAME_MAP_SIZE * NAME_MAP_SIZE))
+			const int FILE_SIZE = NUM_STAGE * (NAME_STRING_SIZE + (NAME_MAP_SIZE * NAME_MAP_SIZE));
+
+			if (read_stream.IsValid() && read_stream.GetSize() == FILE_SIZE)
+			{
+				for (int stage = 0; stage < NUM_STAGE; stage++)
+				{
+					read_stream.Read(&map_data[stage].sz_name[0], NAME_STRING_SIZE);
+					read_stream.Read(&map_data[stage].map[0][0], NAME_MAP_SIZE * NAME_MAP_SIZE);
+				}
+			}
+		}
+
+		void DisplayStage(int stage)
+		{
+			unsigned long COLOR_DATA[] =
+			{
+				0xFF000000, // normal
+				0xFFFF00FF, // moveable block
+				0xFF800000, // moveable block + mine
+				0xFFFF0000, // mine
+				0xFF0000FF, // water
+				0xFF00FF00, // goal by block
+				0xFF00FFFF, // goal by person
+				0xFFFFFFFF, // fixed wall
+				0xFFFFFF00, // start point
+				0x80808080  // ....
+			};
+
+			const int TILE_DISPLAY_SIZE = 8;
+
+			for (int y = 0; y < NAME_MAP_SIZE; y++)
+			for (int x = 0; x < NAME_MAP_SIZE; x++)
+			{
+				int ix_map = map_data[stage].map[x][y];
+				ix_map = (ix_map > 9) ? 9 : ix_map;
+
+				erio::gfx::FillRect(COLOR_DATA[ix_map], 30+TILE_DISPLAY_SIZE*x, 30+TILE_DISPLAY_SIZE*y, TILE_DISPLAY_SIZE, TILE_DISPLAY_SIZE); 
+			}
+		}
+	};
+}
+
 namespace
 {
 	using namespace erio;
@@ -110,6 +178,23 @@ namespace
 				vertices[i].tex_pos.y /= h_texture;
 			}
 		}
+	}
+
+	void s_SetUpGl(void)
+	{
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CW);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+
+		glEnable(GL_COLOR_MATERIAL);
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFuncx(GL_GREATER, GLclampx(0));
 	}
 
 	void s_SetupMatrices(void)
@@ -228,6 +313,7 @@ namespace
 	const int NUM_OF_VERTICES = 14;
 
 	TResource* p_resource = 0;
+	COldMapData* p_old_map_data = 0;
 
 	CSmPlayer* GetMainPlayer(void)
 	{
@@ -358,10 +444,10 @@ namespace
 
 	void DisplayObjects(void)
 	{
+		s_SetUpGl();
 		p_resource->p_d3d_attrib->Process();
 
-		g_p_d3d_device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
-						  D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+		g_p_d3d_device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
 		if (_SUCCEEDED(g_p_d3d_device->BeginScene()))
 		{
@@ -485,8 +571,18 @@ namespace
 
 			g_p_d3d_device->EndScene();
 		}
+	}
 
-		g_p_d3d_device->Present(NULL, NULL, 0, NULL);
+	void DisplayUi(void)
+	{
+		gfx::SetFlatMode();
+
+		if (_SUCCEEDED(g_p_d3d_device->BeginScene()))
+		{
+			p_old_map_data->DisplayStage(4);
+
+			g_p_d3d_device->EndScene();
+		}
 	}
 
 } // namespace
@@ -511,6 +607,8 @@ namespace erio
 
 bool erio::game_play::OnCreate(unsigned long param)
 {
+	p_old_map_data = new COldMapData("STAGE4.MAP");
+
 	p_resource = new TResource;
 
 	p_resource->p_d3d_attrib = new CSm3DAttrib(g_p_d3d_device, 800.0f / 480.0f);
@@ -652,19 +750,7 @@ bool erio::game_play::OnCreate(unsigned long param)
 	}
 
 #if 1
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CW);
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-
-	glEnable(GL_COLOR_MATERIAL);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFuncx(GL_GREATER, GLclampx(0));
+	s_SetUpGl();
 #else
 	g_p_d3d_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 	g_p_d3d_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
@@ -689,6 +775,7 @@ bool erio::game_play::OnCreate(unsigned long param)
 bool erio::game_play::OnDestory(void)
 {
 	delete p_resource;
+	delete p_old_map_data;
 
 	return true;
 }
@@ -707,6 +794,9 @@ bool erio::game_play::OnProcess(void)
 	ProcessObjects(input_device);
 
 	DisplayObjects();
+	DisplayUi();
+
+	g_p_d3d_device->Present(NULL, NULL, 0, NULL);
 
 	return true;
 }

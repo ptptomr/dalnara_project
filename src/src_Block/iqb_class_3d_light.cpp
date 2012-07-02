@@ -33,6 +33,11 @@ erio::CSm3DLight::CSm3DLight(IDirect3DDevice9* p_d3d_device)
 
 unsigned long erio::CSm3DLight::Process(long ref_time, I3dActor* p_sender)
 {
+	m_p_d3d_device->LightEnable(0, true);
+	m_p_d3d_device->SetRenderState(D3DRS_LIGHTING, 1);
+
+	m_Apply();
+
 	return 0;
 }
 

@@ -23,6 +23,10 @@ erio::CSm3DFog::CSm3DFog(IDirect3DDevice9* p_d3d_device)
 
 unsigned long erio::CSm3DFog::Process(long ref_time, I3dActor* p_sender)
 {
+	m_p_d3d_device->SetRenderState(D3DRS_FOGENABLE, 1);
+
+	m_Apply();
+
 	return 0;
 }
 
