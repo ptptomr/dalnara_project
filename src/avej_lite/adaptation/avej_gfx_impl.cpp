@@ -82,7 +82,9 @@ public:
 
 private:
 	unsigned long m_current_layer;
+	int           m_current_texture_id;
 
+	void m_UpdateTextureId(const IGfxSurface* src_surface);
 	void m_Flush(unsigned long layer);
 };
 
@@ -256,7 +258,8 @@ inline bool s_BitBlt(unsigned int layer, const TQuardCoord& vertices, const IGfx
 // imaplementation (CGfxSurfaceImplBackBuffer)
 
 CGfxSurfaceImplBackBuffer::CGfxSurfaceImplBackBuffer()
-: m_current_layer(0)
+	: m_current_layer(0)
+	, m_current_texture_id(-1)
 {
 }
 
@@ -269,6 +272,28 @@ void  CGfxSurfaceImplBackBuffer::SetActiveLayer(unsigned long layer)
 	if (m_current_layer != layer)
 	{
 		m_current_layer = (layer < s_layer_option.num_layer) ? layer : (s_layer_option.num_layer - 1);
+	}
+}
+
+void CGfxSurfaceImplBackBuffer::m_UpdateTextureId(const IGfxSurface* src_surface)
+{
+	const TSurfaceDesc& surface_desc = *((TSurfaceDesc*)src_surface->Handle());
+
+	if (m_current_texture_id != surface_desc.hw_handle)
+	{
+		if (m_current_texture_id >= 0)
+		{
+			for (unsigned long i = 0; i < s_layer_option.num_layer; i++)
+			{
+				this->m_Flush(i);
+
+				s_vertex_list[i].clear();
+				s_color_list[i].clear();
+				s_tex_coord_list[i].clear();
+			}
+		}
+
+		m_current_texture_id = surface_desc.hw_handle;
 	}
 }
 
@@ -352,8 +377,7 @@ void  CGfxSurfaceImplBackBuffer::m_Flush(unsigned long layer)
 
 			glEnable(GL_TEXTURE_2D);
 
-			//?? It's a bug. The texture id is modified by the specified texture parameter.
-			glBindTexture(GL_TEXTURE_2D, 1);
+			glBindTexture(GL_TEXTURE_2D, m_current_texture_id);
 
 			glDrawElements(GL_TRIANGLES, num_of_index*6, GL_UNSIGNED_SHORT, p_index_buffer);
 
@@ -491,7 +515,6 @@ bool  CGfxSurfaceImplBackBuffer::DrawGradLine(unsigned long color1, unsigned lon
 	vertices.data[3][0] = x[3];
 	vertices.data[3][1] = y[3];
 
-
 	s_vertex_list[m_current_layer].push_back(vertices);
 	s_color_list[m_current_layer].push_back(colors);
 	s_tex_coord_list[m_current_layer].push_back(null_tex);
@@ -501,36 +524,48 @@ bool  CGfxSurfaceImplBackBuffer::DrawGradLine(unsigned long color1, unsigned lon
 
 bool  CGfxSurfaceImplBackBuffer::BitBlt(TFixed16 x, TFixed16 y, const IGfxSurface* src_surface, TFixed16 x_sour, TFixed16 y_sour, TFixed16 w_sour, TFixed16 h_sour, const unsigned long color[])
 {
+	m_UpdateTextureId(src_surface);
+
 	const TQuardCoord vertices(x.m_data, y.m_data, (x.m_data + w_sour.m_data), (y.m_data + h_sour.m_data));
 	return s_BitBlt(m_current_layer, vertices, src_surface, x_sour, y_sour, w_sour, h_sour, color);
 }
 
 bool  CGfxSurfaceImplBackBuffer::BitBlt(int x, int y, const IGfxSurface* src_surface, int x_sour, int y_sour, int w_sour, int h_sour, const unsigned long color[])
 {
+	m_UpdateTextureId(src_surface);
+
 	const TQuardCoord vertices(x << 16, y << 16, (x + w_sour) << 16, (y + h_sour) << 16);
 	return s_BitBlt(m_current_layer, vertices, src_surface, TFixed16(x_sour), TFixed16(y_sour), TFixed16(w_sour), TFixed16(h_sour), color);
 }
 
 bool  CGfxSurfaceImplBackBuffer::BitBlt(int x, int y, const TSpriteDesc& sprite_desc, const unsigned long color[])
 {
+	m_UpdateTextureId(sprite_desc.ref_surface);
+
 	const TQuardCoord vertices(x << 16, y << 16, (x + sprite_desc.w_sour) << 16, (y + sprite_desc.h_sour) << 16);
 	return s_BitBlt(m_current_layer, vertices, sprite_desc.ref_surface, TFixed16(sprite_desc.x_sour), TFixed16(sprite_desc.y_sour), TFixed16(sprite_desc.w_sour), TFixed16(sprite_desc.h_sour), color);
 }
 
 bool  CGfxSurfaceImplBackBuffer::StretchBlt(TFixed16 x_dest, TFixed16 y_dest, TFixed16 w_dest, TFixed16 h_dest, const IGfxSurface* src_surface, int x_sour, int y_sour, int w_sour, int h_sour, const unsigned long color[])
 {
+	m_UpdateTextureId(src_surface);
+
 	const TQuardCoord vertices(x_dest.m_data, y_dest.m_data, x_dest.m_data + w_dest.m_data, y_dest.m_data + h_dest.m_data);
 	return s_BitBlt(m_current_layer, vertices, src_surface, TFixed16(x_sour), TFixed16(y_sour), TFixed16(w_sour), TFixed16(h_sour), color);
 }
 
 bool  CGfxSurfaceImplBackBuffer::StretchBlt(int x_dest, int y_dest, int w_dest, int h_dest, const IGfxSurface* src_surface, int x_sour, int y_sour, int w_sour, int h_sour, const unsigned long color[])
 {
+	m_UpdateTextureId(src_surface);
+
 	const TQuardCoord vertices(x_dest << 16, y_dest << 16, (x_dest + w_dest) << 16, (y_dest + h_dest) << 16);
 	return s_BitBlt(m_current_layer, vertices, src_surface, TFixed16(x_sour), TFixed16(y_sour), TFixed16(w_sour), TFixed16(h_sour), color);
 }
 
 bool  CGfxSurfaceImplBackBuffer::StretchBlt(int x_dest, int y_dest, int w_dest, int h_dest, const TSpriteDesc& sprite_desc, const unsigned long color[])
 {
+	m_UpdateTextureId(sprite_desc.ref_surface);
+
 	const TQuardCoord vertices(x_dest << 16, y_dest << 16, (x_dest + w_dest) << 16, (y_dest + h_dest) << 16);
 	return s_BitBlt(m_current_layer, vertices, sprite_desc.ref_surface, TFixed16(sprite_desc.x_sour), TFixed16(sprite_desc.y_sour), TFixed16(sprite_desc.w_sour), TFixed16(sprite_desc.h_sour), color);
 }
