@@ -16,6 +16,9 @@ using namespace Osp::Graphics::Opengl;
 #if   (OPENGL_ES_VERSION == 110)
 #	include <GLES/egl.h>
 #	include <GLES/gl.h>
+#	ifdef DrawText
+#		undef DrawText
+#	endif
 	typedef NativeWindowType  EGLNativeWindowType;
 	typedef NativeDisplayType EGLNativeDisplayType;
 #elif (OPENGL_ES_VERSION == 200)
