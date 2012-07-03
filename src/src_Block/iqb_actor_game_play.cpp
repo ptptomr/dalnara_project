@@ -317,7 +317,7 @@ namespace
 
 	CSmPlayer* GetMainPlayer(void)
 	{
-		return (p_resource->player_list.empty()) ? NULL : p_resource->player_list[1];
+		return (p_resource->player_list.empty()) ? NULL : p_resource->player_list[0];
 	}
 
 	void DisplayMainCharacter(int mode)
@@ -611,10 +611,56 @@ bool erio::game_play::OnCreate(unsigned long param)
 
 	p_resource = new TResource;
 
+	// stage map making
+	{
+		const int STAGE = 4;
+
+		const int STAGE_W_SIZE = 17;
+		const int STAGE_H_SIZE = 17;
+
+		char _MAP_DATA[STAGE_H_SIZE][STAGE_W_SIZE+1];
+
+		const char* MAP_DATA[STAGE_H_SIZE+1] =
+		{
+			_MAP_DATA[0],
+			_MAP_DATA[1],
+			_MAP_DATA[2],
+			_MAP_DATA[3],
+			_MAP_DATA[4],
+			_MAP_DATA[5],
+			_MAP_DATA[6],
+			_MAP_DATA[7],
+			_MAP_DATA[8],
+			_MAP_DATA[9],
+			_MAP_DATA[10],
+			_MAP_DATA[11],
+			_MAP_DATA[12],
+			_MAP_DATA[13],
+			_MAP_DATA[14],
+			_MAP_DATA[15],
+			_MAP_DATA[16],
+			NULL
+		};
+
+		for (int y = 0; y < STAGE_H_SIZE; y++)
+		{
+			for (int x = 0; x < STAGE_W_SIZE; x++)
+			{
+				int ix_map = p_old_map_data->map_data[STAGE].map[x][y];
+				if (ix_map > 5)
+					ix_map = 5;
+				_MAP_DATA[y][x] = '0' + ix_map;
+			}
+
+			_MAP_DATA[y][STAGE_W_SIZE] = 0;
+		}
+
+		p_resource->map.Init(MAP_DATA, -(STAGE_W_SIZE/2), -(STAGE_H_SIZE/2));
+	}
+
 	p_resource->p_d3d_attrib = new CSm3DAttrib(g_p_d3d_device, 800.0f / 480.0f);
 
 	p_resource->player_list.push_back(CreateCharacter(0, 0.0f, 0.0f));
-	p_resource->player_list.push_back(CreateCharacter(1, 2.0f, -4.0f));
 
 	p_resource->sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "NewNeto1_512_256.tga"));
 

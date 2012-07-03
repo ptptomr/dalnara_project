@@ -40,11 +40,8 @@ namespace erio
 			delete[] m_p_map_data;
 		}
 
-		void Init(const char* map_data[])
+		void Init(const char* map_data[], int x_offset = 0, int y_offset = 0)
 		{
-			int i, j;
-			TMapData* p_map;
-
 			m_x_map_size = strlen(map_data[0]);
 			m_y_map_size = 0;
 
@@ -52,15 +49,19 @@ namespace erio
 				++m_y_map_size;
 
 			m_x_map_pitch = m_x_map_size;
+			m_x_offset = x_offset;
+			m_y_offset = y_offset;
+
+			delete m_p_map_data;
 
 			m_p_map_data = new TMapData[m_x_map_pitch * m_y_map_size];
 
-			for (j = 0; j < m_y_map_size; j++)
+			for (int j = 0; j < m_y_map_size; j++)
 			{
-				p_map = m_p_map_data;
+				TMapData* p_map = m_p_map_data;
 				p_map += j * m_x_map_pitch;
 
-				for (i = 0; i < m_x_map_size; i++)
+				for (int i = 0; i < m_x_map_size; i++)
 				{
 					int data = map_data[m_y_map_size-1-j][i] - '0';
 
