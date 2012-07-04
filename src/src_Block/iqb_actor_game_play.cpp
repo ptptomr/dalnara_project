@@ -26,17 +26,48 @@ namespace
 	{
 		enum { NUM_STAGE = 15 };
 		enum { NAME_STRING_SIZE = 22 };
-		enum { NAME_MAP_SIZE = 17 };
+		enum { MAP_SIZE = 17 };
 		struct
 		{
 			char* sz_name[NAME_STRING_SIZE];
-			unsigned char map[NAME_MAP_SIZE][NAME_MAP_SIZE];
+			unsigned char map[MAP_SIZE][MAP_SIZE];
 		} map_data[NUM_STAGE];
 	};
 
 	class COldMapData: public TOldMapData
 	{
 	public:
+		enum TFixedObject
+		{
+			FIXEDOBJECT_NORMAL,
+			FIXEDOBJECT_MINE,
+			FIXEDOBJECT_WATER,
+			FIXEDOBJECT_RECLAIM,
+			FIXEDOBJECT_WALL,
+			FIXEDOBJECT_DECORATION
+		};
+
+		enum TFieldObject
+		{
+			FIELDOBJECT_NONE,
+			FIELDOBJECT_BLOCK,
+			FIELDOBJECT_GOAL_BLOCK,
+			FIELDOBJECT_GOAL_PC,
+			FIELDOBJECT_PC
+		};
+
+		struct TObjectSet
+		{
+			TFixedObject fixed_object;
+			TFieldObject field_object;
+
+			TObjectSet(TFixedObject _fixed_object, TFieldObject _field_object)
+				: fixed_object(_fixed_object)
+				, field_object(_field_object)
+			{
+			}
+		};
+
 		COldMapData(const util::string& file_name)
 		{
 			util::CFileReadStream read_stream(file_name);
@@ -44,15 +75,15 @@ namespace
 			// 4665
 			// = NUM_STAGE * 311
 			// = NUM_STAGE * (NAME_STRING_SIZE + 289)
-			// = NUM_STAGE * (NAME_STRING_SIZE + (NAME_MAP_SIZE * NAME_MAP_SIZE))
-			const int FILE_SIZE = NUM_STAGE * (NAME_STRING_SIZE + (NAME_MAP_SIZE * NAME_MAP_SIZE));
+			// = NUM_STAGE * (NAME_STRING_SIZE + (MAP_SIZE * MAP_SIZE))
+			const int FILE_SIZE = NUM_STAGE * (NAME_STRING_SIZE + (MAP_SIZE * MAP_SIZE));
 
 			if (read_stream.IsValid() && read_stream.GetSize() == FILE_SIZE)
 			{
 				for (int stage = 0; stage < NUM_STAGE; stage++)
 				{
 					read_stream.Read(&map_data[stage].sz_name[0], NAME_STRING_SIZE);
-					read_stream.Read(&map_data[stage].map[0][0], NAME_MAP_SIZE * NAME_MAP_SIZE);
+					read_stream.Read(&map_data[stage].map[0][0], MAP_SIZE * MAP_SIZE);
 				}
 			}
 		}
@@ -62,8 +93,8 @@ namespace
 			unsigned long COLOR_DATA[] =
 			{
 				0xFF000000, // normal
-				0xFFFF00FF, // moveable block
-				0xFF800000, // moveable block + mine
+				0xFFFF00FF, // movable block
+				0xFF800000, // movable block + mine
 				0xFFFF0000, // mine
 				0xFF0000FF, // water
 				0xFF00FF00, // goal by block
@@ -75,8 +106,8 @@ namespace
 
 			const int TILE_DISPLAY_SIZE = 8;
 
-			for (int y = 0; y < NAME_MAP_SIZE; y++)
-			for (int x = 0; x < NAME_MAP_SIZE; x++)
+			for (int y = 0; y < MAP_SIZE; y++)
+			for (int x = 0; x < MAP_SIZE; x++)
 			{
 				int ix_map = map_data[stage].map[x][y];
 				ix_map = (ix_map > 9) ? 9 : ix_map;
@@ -84,6 +115,40 @@ namespace
 				erio::gfx::FillRect(COLOR_DATA[ix_map], 30+TILE_DISPLAY_SIZE*x, 30+TILE_DISPLAY_SIZE*y, TILE_DISPLAY_SIZE, TILE_DISPLAY_SIZE); 
 			}
 		}
+
+		TObjectSet GetMapData(int stage, int x, int y)
+		{
+			if (stage < 0 || stage >= NUM_STAGE)
+				return TObjectSet(FIXEDOBJECT_NORMAL, FIELDOBJECT_NONE);
+
+			if ((x < 0 || x >= MAP_SIZE) || (y < 0 || y >= MAP_SIZE))
+				return TObjectSet(FIXEDOBJECT_NORMAL, FIELDOBJECT_NONE);
+
+			switch (map_data[stage].map[x][y])
+			{
+			case 0: // normal
+				return TObjectSet(FIXEDOBJECT_NORMAL, FIELDOBJECT_NONE);
+			case 1: // movable block
+				return TObjectSet(FIXEDOBJECT_NORMAL, FIELDOBJECT_BLOCK);
+			case 2: // movable block + mine
+				return TObjectSet(FIXEDOBJECT_MINE, FIELDOBJECT_BLOCK);
+			case 3: // mine
+				return TObjectSet(FIXEDOBJECT_MINE, FIELDOBJECT_NONE);
+			case 4: // water
+				return TObjectSet(FIXEDOBJECT_WATER, FIELDOBJECT_NONE);
+			case 5: // goal by block
+				return TObjectSet(FIXEDOBJECT_NORMAL, FIELDOBJECT_GOAL_BLOCK);
+			case 6: // goal by person
+				return TObjectSet(FIXEDOBJECT_NORMAL, FIELDOBJECT_GOAL_PC);
+			case 7: // fixed wall
+				return TObjectSet(FIXEDOBJECT_WALL, FIELDOBJECT_NONE);
+			case 8: // start point
+				return TObjectSet(FIXEDOBJECT_NORMAL, FIELDOBJECT_PC);
+			default:
+				return TObjectSet(FIXEDOBJECT_DECORATION, FIELDOBJECT_NONE);
+			}
+		}
+
 	};
 }
 
@@ -419,7 +484,7 @@ namespace
 			float x_center  = GetMainPlayer()->attribute.pos.x + dx + 0.5f;
 			float y_center  = GetMainPlayer()->attribute.pos.y + dy + 0.5f;
 
-			bool  walkable = p_resource->map.IsMoveableMapRect(x_center, y_center, RADIUS);
+			bool  walkable = p_resource->map.IsMovableMapRect(x_center, y_center, RADIUS);
 
 			if (walkable)
 			{
@@ -427,14 +492,14 @@ namespace
 			}
 			else
 			{
-				walkable = p_resource->map.IsMoveableMapRect(x_center, GetMainPlayer()->attribute.pos.y + 0.5f, RADIUS);
+				walkable = p_resource->map.IsMovableMapRect(x_center, GetMainPlayer()->attribute.pos.y + 0.5f, RADIUS);
 				if (walkable && (dx != 0.0f))
 				{
 					GetMainPlayer()->Move(dx, 0.0f);
 				}
 				else
 				{
-					walkable = p_resource->map.IsMoveableMapRect(GetMainPlayer()->attribute.pos.x + 0.5f, y_center, RADIUS);
+					walkable = p_resource->map.IsMovableMapRect(GetMainPlayer()->attribute.pos.x + 0.5f, y_center, RADIUS);
 					if (walkable && (dy != 0.0f))
 						GetMainPlayer()->Move(0.0f, dy);
 				}
@@ -646,10 +711,54 @@ bool erio::game_play::OnCreate(unsigned long param)
 		{
 			for (int x = 0; x < STAGE_W_SIZE; x++)
 			{
-				int ix_map = p_old_map_data->map_data[STAGE].map[x][y];
-				if (ix_map > 5)
-					ix_map = 5;
-				_MAP_DATA[y][x] = '0' + ix_map;
+				COldMapData::TFixedObject fixed_object = p_old_map_data->GetMapData(STAGE, x, y).fixed_object;
+				COldMapData::TFieldObject field_object = p_old_map_data->GetMapData(STAGE, x, y).field_object;
+
+				int ix_map = 0;
+
+				switch (fixed_object)
+				{
+				case COldMapData::FIXEDOBJECT_NORMAL:
+					ix_map = 0;
+					break;
+				case COldMapData::FIXEDOBJECT_MINE:
+					ix_map = 2;
+					break;
+				case COldMapData::FIXEDOBJECT_WATER:
+					ix_map = 4;
+					break;
+				case COldMapData::FIXEDOBJECT_RECLAIM:
+					ix_map = 0;
+					break;
+				case COldMapData::FIXEDOBJECT_WALL:
+					ix_map = 1;
+					break;
+				case COldMapData::FIXEDOBJECT_DECORATION:
+					ix_map = 0;
+					break;
+				}
+
+				int ix_object = 0;
+
+				switch (field_object)
+				{
+				case COldMapData::FIELDOBJECT_NONE:
+					ix_object = 0;
+					break;
+				case COldMapData::FIELDOBJECT_BLOCK:
+					ix_object = 5;
+					break;
+				case COldMapData::FIELDOBJECT_GOAL_BLOCK:
+				case COldMapData::FIELDOBJECT_GOAL_PC:
+				case COldMapData::FIELDOBJECT_PC:
+					ix_object = 0;
+					break;
+				}
+
+				if (ix_map)
+					_MAP_DATA[y][x] = '0' + ix_map;
+				else
+					_MAP_DATA[y][x] = '0' + ix_object;
 			}
 
 			_MAP_DATA[y][STAGE_W_SIZE] = 0;

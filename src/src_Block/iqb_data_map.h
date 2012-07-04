@@ -109,7 +109,7 @@ namespace erio
 				return false;
 		}
 
-		bool IsMoveableMap(int x, int y) const
+		bool IsMovableMap(int x, int y) const
 		{
 			TMapData* p_map = m_GetMapData(x, y);
 
@@ -119,53 +119,53 @@ namespace erio
 				return true;
 		}
 
-		bool IsMoveableMapRect(float fx, float fy, float radius) const
+		bool IsMovableMapRect(float fx, float fy, float radius) const
 		{
 			int xTest, yTest;
 
 			xTest = int(fx       +10000.f)-10000;
 			yTest = int(fy       +10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			xTest = int(fx-radius+10000.f)-10000;
 			yTest = int(fy       +10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			xTest = int(fx+radius+10000.f)-10000;
 			yTest = int(fy       +10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			xTest = int(fx       +10000.f)-10000;
 			yTest = int(fy-radius+10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			xTest = int(fx       +10000.f)-10000;
 			yTest = int(fy+radius+10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			xTest = int(fx-radius+10000.f)-10000;
 			yTest = int(fy-radius+10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			xTest = int(fx+radius+10000.f)-10000;
 			yTest = int(fy-radius+10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			xTest = int(fx-radius+10000.f)-10000;
 			yTest = int(fy+radius+10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			xTest = int(fx+radius+10000.f)-10000;
 			yTest = int(fy+radius+10000.f)-10000;
-			if (!IsMoveableMap(xTest, yTest))
+			if (!IsMovableMap(xTest, yTest))
 				return false;
 
 			return true;
