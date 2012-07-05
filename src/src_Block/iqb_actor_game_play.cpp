@@ -22,6 +22,8 @@ namespace erio
 // temporary position
 namespace
 {
+	int STAGE = 4;
+
 	struct TOldMapData
 	{
 		enum { NUM_STAGE = 15 };
@@ -644,7 +646,7 @@ namespace
 
 		if (_SUCCEEDED(g_p_d3d_device->BeginScene()))
 		{
-			p_old_map_data->DisplayStage(4);
+			p_old_map_data->DisplayStage(STAGE);
 
 			g_p_d3d_device->EndScene();
 		}
@@ -678,8 +680,6 @@ bool erio::game_play::OnCreate(unsigned long param)
 
 	// stage map making
 	{
-		const int STAGE = 4;
-
 		const int STAGE_W_SIZE = 17;
 		const int STAGE_H_SIZE = 17;
 
@@ -706,6 +706,9 @@ bool erio::game_play::OnCreate(unsigned long param)
 			_MAP_DATA[16],
 			NULL
 		};
+
+		int pc_start_x = 0;
+		int pc_start_y = 0;
 
 		for (int y = 0; y < STAGE_H_SIZE; y++)
 		{
@@ -750,8 +753,11 @@ bool erio::game_play::OnCreate(unsigned long param)
 					break;
 				case COldMapData::FIELDOBJECT_GOAL_BLOCK:
 				case COldMapData::FIELDOBJECT_GOAL_PC:
-				case COldMapData::FIELDOBJECT_PC:
 					ix_object = 0;
+					break;
+				case COldMapData::FIELDOBJECT_PC:
+					pc_start_x = x;
+					pc_start_y = STAGE_H_SIZE - y;
 					break;
 				}
 
@@ -764,12 +770,18 @@ bool erio::game_play::OnCreate(unsigned long param)
 			_MAP_DATA[y][STAGE_W_SIZE] = 0;
 		}
 
-		p_resource->map.Init(MAP_DATA, -(STAGE_W_SIZE/2), -(STAGE_H_SIZE/2));
+		int map_offset_x = (STAGE_W_SIZE / 2);
+		int map_offset_y = (STAGE_H_SIZE / 2);
+
+		p_resource->map.Init(MAP_DATA, -map_offset_x, -map_offset_y);
+
+		pc_start_x -= map_offset_x;
+		pc_start_y -= map_offset_y;
+
+		p_resource->player_list.push_back(CreateCharacter(0, float(pc_start_x), float(pc_start_y) - 0.5f));
 	}
 
 	p_resource->p_d3d_attrib = new CSm3DAttrib(g_p_d3d_device, 800.0f / 480.0f);
-
-	p_resource->player_list.push_back(CreateCharacter(0, 0.0f, 0.0f));
 
 	p_resource->sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "NewNeto1_512_256.tga"));
 
