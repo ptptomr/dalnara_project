@@ -45,6 +45,7 @@ namespace avej_lite
 		PIXELFORMAT_RGB565,    //!< RGB의 각 요소가 5:6:5의 형태로 비트가 나누어져 있는 픽셀 포맷. 16비트
 		PIXELFORMAT_RGBA4444,  //!< ARGB의 각 요소가 4:4:4:4의 형태로 비트가 나누어져 있는 픽셀 포맷. 16비트
 		PIXELFORMAT_ARGB8888,  //!< ARGB의 각 요소가 8:8:8:8의 형태로 비트가 나누어져 있는 픽셀 포맷. 32비트
+		PIXELFORMAT_A8,        //!< A만으로 이루어진 픽셀 포맷. 8비트
 		PIXELFORMAT_UNKNOWN    //!< 위의 목록에 정의되지 않은 픽셀 포맷
 	};
 
@@ -92,7 +93,8 @@ namespace avej_lite
 		DESTINATION_RGB565,
 		DESTINATION_RGBA4444,
 		DESTINATION_ABGR1555,
-		DESTINATION_RGBA5551
+		DESTINATION_RGBA5551,
+		DESTINATION_A8
 	};
 
 	template <TStreamPixelFormat pixel_format>
@@ -110,6 +112,12 @@ namespace avej_lite
 	struct TStreamPixelFormatTraits<DESTINATION_RGBA4444>
 	{
 		typedef unsigned short TPixel;
+	};
+
+	template <>
+	struct TStreamPixelFormatTraits<DESTINATION_A8>
+	{
+		typedef unsigned char TPixel;
 	};
 
 	////////////////////////////////////////////////////////////////////////
@@ -142,6 +150,15 @@ namespace avej_lite
 		++sour_buffer;
 	};
 
+	template <>
+	inline void ConvertColorSpace<DESTINATION_A8, SOURCE_ARGB8888>::ConvertColorSpaceSub(ConvertColorSpace::TDestPixel*& dest_buffer, ConvertColorSpace::TSourPixel*& sour_buffer)
+	{
+		ConvertColorSpace::TDestPixel temp = ConvertColorSpace::TDestPixel(*sour_buffer >> 24);
+		
+		*dest_buffer++ = temp;
+		++sour_buffer;
+	};
+
 	////////////////////////////////////////////////////////////////////////
 	// TToStreamFormat
 
@@ -154,6 +171,12 @@ namespace avej_lite
 	struct TToStreamFormat<PIXELFORMAT_RGBA4444>
 	{
 		enum { stream_format = DESTINATION_RGBA4444 };
+	};
+
+	template <>
+	struct TToStreamFormat<PIXELFORMAT_A8>
+	{
+		enum { stream_format = DESTINATION_A8 };
 	};
 
 } // namespace avej_lite
