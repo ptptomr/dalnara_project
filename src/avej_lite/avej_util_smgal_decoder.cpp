@@ -385,7 +385,7 @@ namespace avej_lite
 			case PIXELFORMAT_RGBA4444:
 				return _DecodeSMgal<PIXELFORMAT_RGBA4444>(p_stream, stream_size, out_surface_desc);
 			case PIXELFORMAT_A8:
-				//return _DecodeSMgal<PIXELFORMAT_A8>(p_stream, stream_size, out_surface_desc);
+				return _DecodeSMgal<PIXELFORMAT_A8>(p_stream, stream_size, out_surface_desc);
 			default:
 				assert(false);
 				return false;

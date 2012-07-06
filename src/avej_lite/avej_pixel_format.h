@@ -68,6 +68,16 @@ namespace avej_lite
 		}
 	};
 
+	template <>
+	struct TPixelFormatTraits<PIXELFORMAT_A8>
+	{
+		typedef unsigned char TPixel;
+		static TPixel ConvertColor(unsigned long color32bits)
+		{
+			return TPixel(color32bits >> 24);
+		}
+	};
+
 	template <TPixelFormat pixel_format>
 	struct TPixelInfo
 	{
