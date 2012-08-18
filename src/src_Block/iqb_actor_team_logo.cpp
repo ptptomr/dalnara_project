@@ -21,10 +21,10 @@ namespace team_logo
 	{
 		gfx::SetFlatMode();
 
-		sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "team_logo2.tga"));
+		sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "team_dalnara_logo.tga"));
 		if (sprite->m_p_texture == 0)
 		{
-			sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "res_Block/team_logo2.tga"));
+			sprite = iu::shared_ptr<CTexture>(new CTexture(g_p_d3d_device, "res_Block/team_dalnara_logo.tga"));
 		}
 
 		return true;
