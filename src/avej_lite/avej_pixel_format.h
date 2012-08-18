@@ -52,7 +52,6 @@ namespace avej_lite
 	template <TPixelFormat pixel_format>
 	struct TPixelFormatTraits
 	{
-		typedef unsigned long TPixel;
 	};
 
 	template <>
