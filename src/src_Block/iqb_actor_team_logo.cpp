@@ -46,9 +46,7 @@ namespace team_logo
 		CInputDevice& input_device = avej_lite::singleton<CInputDevice>::get();
 		input_device.UpdateInputState();
 
-		if (input_device.WasKeyPressed(avej_lite::INPUT_KEY_SYS1) ||
-			//currTick - startTick >= 2000)
-			alpha_constant <= 0.f)
+		if (input_device.WasKeyPressed(avej_lite::INPUT_KEY_SYS1) || alpha_constant <= 0.f)
 		{
 			g_ChangeState(STATE_TITLE, 0x00010001);
 			return false;
@@ -58,23 +56,44 @@ namespace team_logo
 			IGfxDevice::TDeviceDesc screenDesc;
 			g_p_gfx_device->GetDesc(screenDesc);
 
-			g_p_gfx_device->BeginDraw();
-			gfx::BlendBlt(800/2 - 256/2, 480/2 - 256/2, sprite->m_p_texture->m_p_surface, 0, 0, 256, 256, alpha_constant);
-			
-			// test
-			int pitch = 256 * 3;
-			int charHeight = 32;
-			int idxOffset = pitch * (charHeight * 2);
-			for (int y = 0; y < 32; y++)
+			const struct
 			{
-				for (int x = 0; x < 32; x++)
-				{					
-					unsigned int color = (FontData[idxOffset + y*pitch + x*3]) | (FontData[idxOffset + y*pitch + (x*3+1)] << 8) | (FontData[idxOffset + y*pitch +(x*3+2)] << 16);
-					unsigned int finalColor = 0xFF << 24 | color;
-					gfx::FillRect(finalColor, x, 32 - y, 1, 1);				
+				int x;
+				int y;
+				int width;
+				int height;
+			} LOGO_RECT =
+			{
+				0,
+				0,
+				270,
+				178
+			};
+
+			IGfxDevice::TDeviceDesc device_desc;
+			g_p_gfx_device->GetDesc(device_desc);
+
+			const int dest_x = (device_desc.width - LOGO_RECT.width) / 2;
+			const int dest_y = (device_desc.height - LOGO_RECT.height) / 2;
+
+			g_p_gfx_device->BeginDraw();
+			{
+				gfx::BlendBlt(dest_x, dest_y, sprite->m_p_texture->m_p_surface, LOGO_RECT.x, LOGO_RECT.y, LOGO_RECT.width, LOGO_RECT.height, alpha_constant);
+				
+				// test
+				int pitch = 256 * 3;
+				int charHeight = 32;
+				int idxOffset = pitch * (charHeight * 2);
+				for (int y = 0; y < 32; y++)
+				{
+					for (int x = 0; x < 32; x++)
+					{					
+						unsigned int color = (FontData[idxOffset + y*pitch + x*3]) | (FontData[idxOffset + y*pitch + (x*3+1)] << 8) | (FontData[idxOffset + y*pitch +(x*3+2)] << 16);
+						unsigned int finalColor = 0xFF << 24 | color;
+						gfx::FillRect(finalColor, x, 32 - y, 1, 1);				
+					}
 				}
 			}
-
 			g_p_gfx_device->EndDraw();
 			g_p_gfx_device->Flip();
 
@@ -86,7 +105,7 @@ namespace team_logo
 					increase = false;
 				}
 			}
-			else if (currTick - startTick >= 2500)
+			else if (currTick - startTick >= 5000)
 			{
 				alpha_constant -= 0.005f;
 			}

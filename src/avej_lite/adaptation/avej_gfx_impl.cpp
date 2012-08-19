@@ -804,7 +804,7 @@ bool  IGfxDeviceImpl::CreateSurface(const TSurfaceDesc& ref_surface_desc, IGfxSu
 	TSurfaceDesc surface_desc = ref_surface_desc;
 
 	// the temporary solution for FillRect();
-	*((unsigned short*)surface_desc.lock_desc.p_buffer) = 0xFFFF;
+	// *((unsigned short*)surface_desc.lock_desc.p_buffer) = 0xFFFF;
 
 	surface_desc.hw_handle = s_CreateTexture(surface_desc.buffer_desc.width, surface_desc.buffer_desc.height, (unsigned short*)surface_desc.lock_desc.p_buffer, true);
 
