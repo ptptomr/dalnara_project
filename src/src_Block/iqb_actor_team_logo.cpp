@@ -4,8 +4,6 @@
 
 #include "iqb_class_3d_texture.h"
 
-#include "FontData.h"
-
 using namespace avej_lite;
 
 namespace erio
@@ -14,6 +12,20 @@ namespace erio
 
 namespace team_logo
 {
+	const struct
+	{
+		int x;
+		int y;
+		int width;
+		int height;
+	} LOGO_RECT =
+	{
+		0,
+		0,
+		270,
+		178
+	};
+
 	float alpha_constant = 0.2f;
 	iu::shared_ptr<CTexture> sprite;
 
@@ -56,20 +68,6 @@ namespace team_logo
 			IGfxDevice::TDeviceDesc screenDesc;
 			g_p_gfx_device->GetDesc(screenDesc);
 
-			const struct
-			{
-				int x;
-				int y;
-				int width;
-				int height;
-			} LOGO_RECT =
-			{
-				0,
-				0,
-				270,
-				178
-			};
-
 			IGfxDevice::TDeviceDesc device_desc;
 			g_p_gfx_device->GetDesc(device_desc);
 
@@ -79,20 +77,6 @@ namespace team_logo
 			g_p_gfx_device->BeginDraw();
 			{
 				gfx::BlendBlt(dest_x, dest_y, sprite->m_p_texture->m_p_surface, LOGO_RECT.x, LOGO_RECT.y, LOGO_RECT.width, LOGO_RECT.height, alpha_constant);
-				
-				// test
-				int pitch = 256 * 3;
-				int charHeight = 32;
-				int idxOffset = pitch * (charHeight * 2);
-				for (int y = 0; y < 32; y++)
-				{
-					for (int x = 0; x < 32; x++)
-					{					
-						unsigned int color = (FontData[idxOffset + y*pitch + x*3]) | (FontData[idxOffset + y*pitch + (x*3+1)] << 8) | (FontData[idxOffset + y*pitch +(x*3+2)] << 16);
-						unsigned int finalColor = 0xFF << 24 | color;
-						gfx::FillRect(finalColor, x, 32 - y, 1, 1);				
-					}
-				}
 			}
 			g_p_gfx_device->EndDraw();
 			g_p_gfx_device->Flip();

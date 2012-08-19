@@ -5,3 +5,6 @@ Debug/
 src/bin/*.exe
 src/bin/*.ilk
 src/bin/*.cfg
+.Target-Debug
+Dalnara.htb
+signature.xml
