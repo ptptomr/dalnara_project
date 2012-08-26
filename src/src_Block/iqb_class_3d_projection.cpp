@@ -11,7 +11,11 @@ void erio::CSm3DProjection::m_InitiaizeProjectionMatrix(float screen_ratio)
 	if (screen_ratio == 0.0f)
 		screen_ratio = 4.0f / 3.0f;
 
-	D3DXMatrixPerspectiveFovLH(&mat_project1, D3DX_PI / 6.0f, screen_ratio, 1.0f, 100.0f);
+	if (USE_ROTATION)
+		D3DXMatrixPerspectiveFovLH(&mat_project1, D3DX_PI / 6.0f, screen_ratio, 1.0f, 100.0f);
+	else
+		D3DXMatrixPerspectiveFovLH(&mat_project1, D3DX_PI / 6.0f, screen_ratio, 1.0f, 100.0f);
+
 	D3DXMatrixOrthoOffCenterLH(&mat_project2, -6.0f, 6.0f, -6.0f / screen_ratio, 6.0f / screen_ratio, 1.0f, 100.0f);
 
 	for (int k = 0; k <= HIGH_INDEX; k++)

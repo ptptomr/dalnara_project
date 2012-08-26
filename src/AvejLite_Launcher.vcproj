@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="AvejLite_Launcher"
 	ProjectGUID="{9E4E6D48-8154-47EC-9C0A-0BFEC2A18E18}"
+	RootNamespace="AvejLite_Launcher"
 	TargetFrameworkVersion="0"
 	>
 	<Platforms>

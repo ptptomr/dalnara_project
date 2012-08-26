@@ -78,6 +78,13 @@ static LRESULT CALLBACK WndProc(HWND g_h_wnd, UINT message, WPARAM w_param, LPAR
 
 EGLNativeWindowType avej_lite::gfx3d::osal::GetNativeWindow(int screen, unsigned int width, unsigned int height, unsigned int depth)
 {
+	if (USE_ROTATION)
+	{
+		width ^= height;
+		height ^= width;
+		width ^= height;
+	}
+
 	HINSTANCE h_instance = GetModuleHandle(NULL);
 
 	// windows class µî·Ï

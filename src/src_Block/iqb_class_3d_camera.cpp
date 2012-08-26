@@ -6,17 +6,18 @@ erio::CSm3DCamera::CSm3DCamera(IDirect3DDevice9* p_d3d_device)
 {
 	m_p_d3d_device = p_d3d_device;
 
-	m_modified   = false;
+	m_modified = false;
 
-	m_vec_look_at  = D3DVECTOR3(0.0, 1.0, 0.0);
-	m_vec_up      = D3DVECTOR3(0.0, 1.0, 0.0);
+	m_vec_look_at = D3DVECTOR3(0.0, 1.0, 0.0);
 
-	m_angle      = - 0.22f;
-	m_height     = 8.0;
-	m_radius     = 16.0;
+	if (USE_ROTATION)
+		m_vec_up = D3DVECTOR3(-1.0, 0.0, 0.0);
+	else
+		m_vec_up = D3DVECTOR3(0.0, 1.0, 0.0);
 
-	m_height     = 6.0;
-	m_radius     = 12.0;
+	m_angle  = - 0.22f;
+	m_height = 6.0;
+	m_radius = 12.0;
 
 	m_Apply();
 }
